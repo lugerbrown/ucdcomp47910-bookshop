@@ -11,6 +11,8 @@ services:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./mysql-ssl:/etc/mysql/ssl:ro
+    command: --ssl-cert=/etc/mysql/ssl/server-cert.pem --ssl-key=/etc/mysql/ssl/server-key.pem --require-secure-transport=ON
     networks:
       - app-network
 volumes:
