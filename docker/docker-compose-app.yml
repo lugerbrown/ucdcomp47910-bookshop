@@ -1,0 +1,21 @@
+  version: '3.8'
+  services:
+    app:
+      build:
+        context: ..
+        dockerfile: Dockerfile
+      environment:
+        - BOOK_STORE_CONNECTION_STRING=jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?serverTimezone=UTC&useSSL=true&requireSSL=true&verifyServerCertificate=true
+        - MYSQL_USER=${MYSQL_USER}
+        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+        - SPRING_DATASOURCE_HIKARI_TRUSTSTORE_LOCATION=file:/app/truststore.jks
+        - SPRING_DATASOURCE_HIKARI_TRUSTSTORE_PASSWORD=${SPRING_DATASOURCE_HIKARI_TRUSTSTORE_PASSWORD}
+      ports:
+        - "8080:8080"
+      depends_on:
+        - mysql
+      networks:
+        - app-network
+  networks:
+    app-network:
+      driver: bridge

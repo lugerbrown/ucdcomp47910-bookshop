@@ -2,10 +2,17 @@
 
 To run MYSQL server only using the configured env variables.
 
+## Running MySQL Server 
 ``` bash
-docker-compose --env-file .env up -d
+docker-compose -f docker/docker-compose.yml --env-file docker/.env up -d
 ```
+## Run the application
+build and run dependencies and the app using the docker-compose from both dependencies and the application
 
+``` bash
+docker-compose -f docker/docker-compose.yml -f docker/docker-compose-app.yml --env-file docker/.env up -d
+
+## Book API
 
 here are the curl commands to test the server
 
