@@ -1,6 +1,6 @@
-package com.ucd.bookstore.repository;
+package com.ucd.bookshop.repository;
 
-import com.ucd.bookstore.model.Book;
+import com.ucd.bookshop.model.Book;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

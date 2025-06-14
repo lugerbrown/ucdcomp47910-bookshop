@@ -1,4 +1,4 @@
-package com.ucd.bookstore.model;
+package com.ucd.bookshop.model;
 
 
 import jakarta.persistence.Entity;
