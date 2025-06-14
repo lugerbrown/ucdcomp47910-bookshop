@@ -1,4 +1,4 @@
-package com.ucd.bookstore;
+package com.ucd.bookshop;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

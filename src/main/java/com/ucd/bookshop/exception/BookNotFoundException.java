@@ -1,4 +1,4 @@
-package com.ucd.bookstore.exception;
+package com.ucd.bookshop.exception;
 
 public class BookNotFoundException extends Exception {
     private long book_id;

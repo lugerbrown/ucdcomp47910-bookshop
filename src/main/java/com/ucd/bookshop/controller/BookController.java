@@ -1,8 +1,8 @@
-package com.ucd.bookstore.controller;
+package com.ucd.bookshop.controller;
 
-import com.ucd.bookstore.exception.BookNotFoundException;
-import com.ucd.bookstore.model.Book;
-import com.ucd.bookstore.repository.BookRepository;
+import com.ucd.bookshop.exception.BookNotFoundException;
+import com.ucd.bookshop.model.Book;
+import com.ucd.bookshop.repository.BookRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

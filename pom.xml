@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.ucd</groupId>
-    <artifactId>BookStore</artifactId>
+    <artifactId>BookShop</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>COMP47910-BookStore</name>
-    <description>COMP47910-BookStore</description>
+    <name>COMP47910-BookShop</name>
+    <description>COMP47910-BookShop</description>
     <url/>
     <licenses>
         <license/>
