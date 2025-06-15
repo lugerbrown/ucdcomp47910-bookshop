@@ -4,6 +4,7 @@ import com.ucd.bookshop.exception.BookNotFoundException;
 import com.ucd.bookshop.model.Book;
 import com.ucd.bookshop.repository.BookRepository;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,30 +12,31 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/books")
+@AllArgsConstructor
 public class BookController {
-    @Autowired
     BookRepository bookRepository;
 
     // Get All Books
-    @GetMapping("/books")
+    @GetMapping
     public List<Book> getAllBooks(){
         return bookRepository.findAll();
     }
 
     // Create a new Book
-    @PostMapping("/books")
+    @PostMapping
     public Book newBook(@Valid @RequestBody Book newBook)
     {
         return bookRepository.save(newBook);
     }
 
     // Get a Single Book
-    @GetMapping("/books/{id}")
+    @GetMapping("/{id}")
     public Book getBookById(@PathVariable(value = "id") Long bookId) throws BookNotFoundException {
         return bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId));}
 
     // Update an Existing Book
-    @PutMapping("/books/{id}")
+    @PutMapping("/{id}")
     public Book updateBook(@PathVariable(value="id") Long bookId, @Valid @RequestBody Book bookDetails)
             throws BookNotFoundException{
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId));
@@ -46,7 +48,7 @@ public class BookController {
     }
 
     // Delete a Book
-    @DeleteMapping("/books/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteBook(@PathVariable(value="id") Long bookId) throws BookNotFoundException {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId));
         bookRepository.delete(book);

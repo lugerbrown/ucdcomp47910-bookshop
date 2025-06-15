@@ -7,20 +7,18 @@ import com.ucd.bookshop.repository.CartRepository;
 import com.ucd.bookshop.repository.CartItemRepository;
 import com.ucd.bookshop.repository.BookRepository;
 import com.ucd.bookshop.repository.CustomerRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/carts")
 public class CartController {
-    @Autowired
     private CartRepository cartRepository;
-    @Autowired
     private CartItemRepository cartItemRepository;
-    @Autowired
     private BookRepository bookRepository;
-    @Autowired
     private CustomerRepository customerRepository;
 
     @GetMapping("/by-customer/{customerId}")

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Books - BookShop</title>
+</head>
+<body>
+<h2>Book List</h2>
+<div sec:authorize="hasRole('ADMIN')">
+    <a th:href="@{/books/add}"><button>Add New Book</button></a>
+</div>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Year</th>
+        <th>Price</th>
+        <th>Copies</th>
+        <th sec:authorize="hasRole('ADMIN')">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="book : ${books}">
+        <td th:text="${book.book_name}"></td>
+        <td th:text="${book.author_name}"></td>
+        <td th:text="${book.year}"></td>
+        <td th:text="${book.price}"></td>
+        <td th:text="${book.numberOfCopies}"></td>
+        <td sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{'/books/edit/' + ${book.id}}">Edit</a>
+            <form th:action="@{'/books/delete/' + ${book.id}}" method="post" style="display:inline;">
+                <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html> 

@@ -19,7 +19,7 @@ public class SecurityConfig {
                 .sessionManagement( c ->
                     c.sessionCreationPolicy(SessionCreationPolicy.STATELESS) )
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for simplicity, not recommended for production
-                .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth  //.anyRequest().permitAll());
                         .requestMatchers("/register", "/login", "/", "/books", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/carts/**", "/cart-items/**").hasRole("CUSTOMER")
