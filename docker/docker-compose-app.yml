@@ -1,6 +1,7 @@
   version: '3.8'
   services:
     app:
+      image: comp47910-bookshop
       build:
         context: ..
         dockerfile: Dockerfile

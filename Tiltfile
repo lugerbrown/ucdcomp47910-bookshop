@@ -1,7 +1,7 @@
 # Tiltfile
 
 docker_build(
-    'comp47910-bookstore',
+    'comp47910-bookshop',
     '.',
     dockerfile='Dockerfile',
     live_update=[
