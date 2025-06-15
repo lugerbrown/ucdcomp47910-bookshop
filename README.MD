@@ -3,10 +3,13 @@
 To run MYSQL server only using the configured env variables.
 
 ## Running MySQL Server 
+
 ``` bash
 docker-compose -f docker/docker-compose.yml --env-file docker/.env up -d
 ```
+
 ## Run the application
+
 build and run dependencies and the app using the docker-compose from both dependencies and the application
 
 ``` bash
@@ -22,16 +25,20 @@ curl -d '{"book_name": "Book1","author_name": "Author1","isbn":"ISBN1"}' -H 'Con
 ```
 
 this gets all books
+
 ``` bash
 curl -H 'Content-Type: application/json' http://localhost:8080/books
 ```
 or you can use the browser to access the URL http://localhost:8080/books
 
 to modify a book
+
 ``` bash
 curl -X PUT -H "Content-Type: application/json" -d '{"book_name": "New_Book","author_name": "Author2","isbn":"ISBN2"}' http://localhost:8080/books/2
 ```
+
 then to delete a book
+
 ``` bash
 curl -X DELETE http://localhost:8080/books/2
 ```
@@ -86,4 +93,28 @@ docker-compose -f docker/docker-compose.yml --env-file docker/.env up -d
 
 This ensures the application has the required environment variables and can connect to the MySQL server.
 
-  
+## Running the Development Environment with Tilt
+
+[Tilt](https://tilt.dev/) is a tool that helps developers manage and automate the process of running and updating multi-service development environments (such as those using Docker Compose or Kubernetes). It watches your code and configuration for changes and automatically updates your running services, making local development faster and easier.
+
+### How to Use Tilt in This Project
+
+You can use Tilt to spin up the entire development environment, including all dependencies, with a single command. This is especially useful for local development and testing.
+
+#### On macOS/Linux (Bash)
+Run the following script to load environment variables and start Tilt:
+
+```bash
+./run-tilt.sh
+```
+
+#### On Windows (PowerShell)
+Run the following script to do the same in PowerShell:
+
+```powershell
+./run-tilt.ps1
+```
+
+Tilt will start and manage your services as defined in the `Tiltfile` and Docker Compose files. You can then access the Tilt web UI (usually at http://localhost:10350) to monitor and control your development environment.
+
+**Note:** Make sure you have [Tilt installed](https://docs.tilt.dev/install.html) on your system before running these scripts.
