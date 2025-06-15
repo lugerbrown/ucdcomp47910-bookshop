@@ -3,17 +3,20 @@ package com.ucd.bookshop.controller;
 import com.ucd.bookshop.dto.CustomerRegistrationDTO;
 import com.ucd.bookshop.model.Customer;
 import com.ucd.bookshop.repository.CustomerRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+@AllArgsConstructor
 @Controller
 public class CustomerWebController {
-    @Autowired
-    private CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {
@@ -27,7 +30,7 @@ public class CustomerWebController {
         Customer customer = new Customer();
         customer.setUsername(dto.getUsername());
         customer.setPassword(dto.getPassword());
-        customer.setName(dto.getName());
+        customer.setPassword(passwordEncoder.encode(dto.getPassword()));
         customer.setSurname(dto.getSurname());
         customer.setDateOfBirth(dto.getDateOfBirth());
         customer.setAddress(dto.getAddress());

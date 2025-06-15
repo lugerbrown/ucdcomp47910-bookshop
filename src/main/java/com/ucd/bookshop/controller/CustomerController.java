@@ -3,22 +3,25 @@ package com.ucd.bookshop.controller;
 import com.ucd.bookshop.model.Customer;
 import com.ucd.bookshop.repository.CustomerRepository;
 import com.ucd.bookshop.dto.CustomerRegistrationDTO;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/customers")
 public class CustomerController {
-    @Autowired
-    private CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
     public CustomerRegistrationDTO registerCustomer(@RequestBody CustomerRegistrationDTO dto) {
         // In production, hash the password before saving!
         Customer customer = new Customer();
         customer.setUsername(dto.getUsername());
-        customer.setPassword(dto.getPassword());
+        customer.setPassword(passwordEncoder.encode(dto.getPassword()));
         customer.setName(dto.getName());
         customer.setSurname(dto.getSurname());
         customer.setDateOfBirth(dto.getDateOfBirth());
