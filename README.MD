@@ -1,3 +1,33 @@
+# Setup
+
+This application requires sensitive information such as database credentials and SSL certificates, which are not included in the repository for security reasons. Instead, these are provided via a `.env` file located in the `docker/` directory. The `.env` file is essential for configuring the database connection and SSL truststore used by the application.
+
+To simplify the setup process, a script named `setup-env.sh` is provided at the root of the project. This script will:
+- Prompt you for the necessary database credentials and truststore password.
+- Generate the `docker/.env` file with the required environment variables.
+- Automatically create the SSL certificates and Java truststore needed for secure MySQL connections.
+
+**Note:** The `.env` file and generated certificates are not tracked by git and must be created locally using the setup script.
+
+To run the setup, execute:
+```bash
+bash ./setup-env.sh
+```
+Follow the prompts to enter your credentials and details. After setup, you can start the MySQL server and the application as described below.
+
+### Example `.env` file
+Below is an example of what your `docker/.env` file might look like after running the setup script:
+
+```env
+MYSQL_ROOT_PASSWORD=rootpassword
+MYSQL_DATABASE=library
+MYSQL_USER=appuser
+MYSQL_PASSWORD=appuserpassword
+BOOK_STORE_CONNECTION_STRING="jdbc:mysql://localhost:3306/library?serverTimezone=UTC&useSSL=true&requireSSL=true"
+SPRING_DATASOURCE_HIKARI_TRUSTSTORE_PASSWORD=truststorepassword
+SPRING_DATASOURCE_HIKARI_TRUSTSTORE_LOCATION=file:/_dev/COMP47910-BookStore/docker/mysql-ssl/truststore.jks
+```
+
 # Run MySQL Server in a Docker container
 
 To run MYSQL server only using the configured env variables.
