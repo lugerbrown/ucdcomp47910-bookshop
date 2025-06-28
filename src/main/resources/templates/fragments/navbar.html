@@ -5,10 +5,6 @@
     <div th:fragment="navbar">
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container-fluid">
-                <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
-                    <img th:src="@{/images/logo.svg}" alt="BookShop Logo" width="32" height="32" class="me-2">
-                    BookShop
-                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -54,6 +50,16 @@
                                     <i class="bi bi-box-arrow-right"></i> Logout
                                 </button>
                             </form>
+                        </li>
+                        <!-- Show current logged-in user at the end -->
+                        <li class="nav-item" sec:authorize="isAuthenticated()">
+
+                            <a class="nav-link" href="#">
+                            <span class="navbar-text text-light">
+                                <i class="bi bi-person-circle"></i>
+                                <span sec:authentication="name"></span>
+                            </span>
+                            </a>
                         </li>
                     </ul>
                 </div>
