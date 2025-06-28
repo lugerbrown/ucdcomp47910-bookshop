@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="none">
+<rect width="512" height="512" rx="100" fill="#2C3E50"/>
+<g transform="translate(128, 96)">
+    <rect x="0" y="0" width="64" height="256" rx="8" fill="#ECF0F1"/>
+    <rect x="96" y="0" width="64" height="256" rx="8" fill="#2ECC71"/>
+    <rect x="192" y="0" width="64" height="256" rx="8" fill="#ECF0F1"/>
+    <rect x="32" y="64" width="32" height="8" fill="#95A5A6"/>
+    <rect x="128" y="64" width="32" height="8" fill="#27AE60"/>
+    <rect x="224" y="64" width="32" height="8" fill="#95A5A6"/>
+    <path d="M64 256 L128 320 L192 256 Z" fill="#E67E22"/>
+    <circle cx="128" cy="352" r="16" fill="#F1C40F"/>
+    <!-- Shamrock (Irish touch) -->
+    <g transform="translate(110, 20)">
+        <circle r="6" cx="0" cy="0" fill="#2ECC71"/>
+        <circle r="6" cx="-6" cy="-6" fill="#2ECC71"/>
+        <circle r="6" cx="6" cy="-6" fill="#2ECC71"/>
+        <path d="M0 0 Q 0 10 4 14" stroke="#27AE60" stroke-width="2"/>
+    </g>
+</g>
+</svg>
