@@ -22,6 +22,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth  //.anyRequest().permitAll());
                         .requestMatchers("/register", "/login", "/", "/books", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/authors/**").hasRole("ADMIN")
                         .requestMatchers("/carts/**", "/cart-items/**").hasRole("CUSTOMER")
                         .anyRequest().authenticated()
                 )
