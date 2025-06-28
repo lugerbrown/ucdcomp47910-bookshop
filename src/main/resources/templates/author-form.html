@@ -28,9 +28,14 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100" th:text="${author.id} != null ? 'Update Author' : 'Add Author'"></button>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i th:class="${author.id} != null ? 'bi bi-arrow-repeat' : 'bi bi-plus-circle'"></i>
+                            <span th:text="${author.id} != null ? 'Update Author' : 'Add Author'"></span>
+                        </button>
                     </form>
-                    <a th:href="@{/authors}" class="btn btn-link mt-3">Back to Authors List</a>
+                    <a th:href="@{/authors}" class="btn btn-link mt-3">
+                        <i class="bi bi-arrow-left"></i> Back to Authors List
+                    </a>
                 </div>
             </div>
         </div>

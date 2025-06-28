@@ -36,10 +36,14 @@
                             <label class="form-label">Credit Card Number:</label>
                             <input type="text" th:field="*{creditCardNumber}" class="form-control" required>
                         </div>
-                        <button type="submit" class="btn btn-success w-100">Place Order</button>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-credit-card-2-front"></i> Place Order
+                        </button>
                     </form>
                     <div class="text-center mt-3">
-                        <a th:href="@{/cart}" class="btn btn-link">Back to Cart</a>
+                        <a th:href="@{/cart}" class="btn btn-link">
+                            <i class="bi bi-arrow-left"></i> Back to Cart
+                        </a>
                     </div>
                 </div>
             </div>

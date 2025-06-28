@@ -8,7 +8,9 @@
         <div class="container mt-5">
             <h2 class="mb-4">Author Management</h2>
             <div class="mb-3">
-                <a th:href="@{/authors/add}" class="btn btn-success">Add New Author</a>
+                <a th:href="@{/authors/add}" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Add New Author
+                </a>
             </div>
             <div class="card shadow">
                 <div class="card-body">
@@ -27,11 +29,13 @@
                             <td th:text="${author.name}"></td>
                             <td th:text="${author.books != null ? author.books.size() : 0}"></td>
                             <td>
-                                <a th:href="@{'/authors/edit/' + ${author.id}}" class="btn btn-primary btn-sm">Edit</a>
+                                <a th:href="@{'/authors/edit/' + ${author.id}}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
                                 <form th:action="@{'/authors/delete/' + ${author.id}}" method="post" style="display:inline;">
                                     <button type="submit" class="btn btn-danger btn-sm"
                                             onclick="return confirm('Are you sure? This will remove the author from all associated books.')">
-                                        Delete
+                                        <i class="bi bi-trash"></i> Delete
                                     </button>
                                 </form>
                             </td>

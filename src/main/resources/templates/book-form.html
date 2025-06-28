@@ -54,9 +54,14 @@
                             <label class="form-label">ISBN:</label>
                             <input type="text" th:field="*{isbn}" class="form-control" required>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100" th:text="${book.id} != null ? 'Update' : 'Add'"></button>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i th:class="${book.id} != null ? 'bi bi-arrow-repeat' : 'bi bi-plus-circle'"></i>
+                            <span th:text="${book.id} != null ? 'Update Book' : 'Add Book'"></span>
+                        </button>
                     </form>
-                    <a th:href="@{/books}" class="btn btn-link mt-3">Back to Book List</a>
+                    <a th:href="@{/books}" class="btn btn-link mt-3">
+                        <i class="bi bi-arrow-left"></i> Back to Book List
+                    </a>
                 </div>
             </div>
         </div>

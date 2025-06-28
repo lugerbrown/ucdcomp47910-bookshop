@@ -34,7 +34,9 @@
                                 <td th:text="${item.totalPrice}"></td>
                                 <td>
                                     <form th:action="@{'/cart/remove/' + ${item.id}}" method="post" style="display:inline;">
-                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="bi bi-trash"></i> Remove
+                                        </button>
                                     </form>
                                 </td>
                             </tr>
@@ -44,8 +46,12 @@
                             <h4>Total: <span th:text="${total}"></span></h4>
                         </div>
                         <div class="text-center mt-4">
-                            <a th:href="@{/books}" class="btn btn-secondary">Continue Shopping</a>
-                            <a th:href="@{/checkout}" class="btn btn-success">Checkout</a>
+                            <a th:href="@{/books}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Continue Shopping
+                            </a>
+                            <a th:href="@{/checkout}" class="btn btn-success">
+                                <i class="bi bi-credit-card"></i> Checkout
+                            </a>
                         </div>
                     </div>
                 </div>
