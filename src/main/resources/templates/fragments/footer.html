@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head></head>
+<body>
+    <footer th:fragment="footer" class="bg-dark text-light mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <h5>BookShop</h5>
+                    <p class="text-muted">Your one-stop destination for all your reading needs.</p>
+                </div>
+                <div class="col-md-3">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a th:href="@{/}" class="text-light text-decoration-none">Home</a></li>
+                        <li><a th:href="@{/books}" class="text-light text-decoration-none">Browse Books</a></li>
+                        <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/authors}" class="text-light text-decoration-none">Manage Authors</a></li>
+                        <li sec:authorize="isAuthenticated()"><a th:href="@{/cart}" class="text-light text-decoration-none">Shopping Cart</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Account</h6>
+                    <ul class="list-unstyled">
+                        <li sec:authorize="!isAuthenticated()"><a th:href="@{/login}" class="text-light text-decoration-none">Login</a></li>
+                        <li sec:authorize="!isAuthenticated()"><a th:href="@{/register}" class="text-light text-decoration-none">Register</a></li>
+                        <li sec:authorize="isAuthenticated()">
+                            <form th:action="@{/logout}" method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-link text-light p-0 text-decoration-none" style="border: none;">Logout</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Support</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light text-decoration-none">Help Center</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Contact Us</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Privacy Policy</a></li>
+                        <li><a href="#" class="text-light text-decoration-none">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">&copy; 2025 BookShop. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="d-flex justify-content-md-end gap-3">
+                        <a href="#" class="text-light"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
+
