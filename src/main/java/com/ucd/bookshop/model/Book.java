@@ -5,7 +5,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.CascadeType;
 import jakarta.validation.constraints.NotBlank;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name= "books")
@@ -18,8 +24,11 @@ public class Book {
     @NotBlank
     private String book_name;
 
-    @NotBlank
-    private String author_name;
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(name = "book_author",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "author_id"))
+    private Set<Author> authors = new HashSet<>();
 
     @NotBlank
     private String isbn;
@@ -31,10 +40,9 @@ public class Book {
     public Book() {
         super();
     }
-    public Book(Long id, String book_name, String author_name, String isbn, Integer year, Double price, Integer numberOfCopies) {
+    public Book(Long id, String book_name, String isbn, Integer year, Double price, Integer numberOfCopies) {
         this.id = id;
         this.book_name = book_name;
-        this.author_name = author_name;
         this.isbn = isbn;
         this.year = year;
         this.price = price;
@@ -49,11 +57,12 @@ public class Book {
         this.book_name = book_name;
     }
 
-    public String getAuthor_name() {
-        return author_name;
+    public Set<Author> getAuthors() {
+        return authors;
     }
-    public void setAuthor_name(String author_name) {
-        this.author_name = author_name;
+
+    public void setAuthors(Set<Author> authors) {
+        this.authors = authors;
     }
 
     public String getIsbn() {
