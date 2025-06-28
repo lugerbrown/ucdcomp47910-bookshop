@@ -12,30 +12,44 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link" th:href="@{/}">Home</a>
+                            <a class="nav-link" th:href="@{/}">
+                                <i class="bi bi-house-door"></i> Home
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" th:href="@{/books}">Books</a>
+                            <a class="nav-link" th:href="@{/books}">
+                                <i class="bi bi-book"></i> Books
+                            </a>
                         </li>
                         <!-- Show Authors link only for admin users -->
                         <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                            <a class="nav-link" th:href="@{/authors}">Authors</a>
+                            <a class="nav-link" th:href="@{/authors}">
+                                <i class="bi bi-people"></i> Authors
+                            </a>
                         </li>
                         <!-- Show Cart link only when user is authenticated -->
                         <li class="nav-item" sec:authorize="isAuthenticated()">
-                            <a class="nav-link" th:href="@{/cart}">Cart</a>
+                            <a class="nav-link" th:href="@{/cart}">
+                                <i class="bi bi-cart"></i> Cart
+                            </a>
                         </li>
                         <!-- Show Login and Register links only when user is NOT authenticated -->
                         <li class="nav-item" sec:authorize="!isAuthenticated()">
-                            <a class="nav-link" th:href="@{/login}">Login</a>
+                            <a class="nav-link" th:href="@{/login}">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </a>
                         </li>
                         <li class="nav-item" sec:authorize="!isAuthenticated()">
-                            <a class="nav-link" th:href="@{/register}">Register</a>
+                            <a class="nav-link" th:href="@{/register}">
+                                <i class="bi bi-person-plus"></i> Register
+                            </a>
                         </li>
                         <!-- Show Logout link only when user is authenticated -->
                         <li class="nav-item" sec:authorize="isAuthenticated()">
                             <form th:action="@{/logout}" method="post" style="display: inline;">
-                                <button type="submit" class="nav-link btn btn-link" style="border: none; background: none; color: rgba(255,255,255,.75);">Logout</button>
+                                <button type="submit" class="nav-link btn btn-link" style="border: none; background: none; color: rgba(255,255,255,.75);">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </button>
                             </form>
                         </li>
                     </ul>
