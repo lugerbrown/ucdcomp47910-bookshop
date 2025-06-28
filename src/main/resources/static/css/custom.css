@@ -1,0 +1,29 @@
+/* Sticky Footer CSS */
+html, body {
+    height: 100%;
+}
+
+.wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    flex: 1;
+}
+
+footer {
+    margin-top: auto;
+}
+
+/* Active Navigation Styles */
+.navbar-nav .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 0.375rem;
+    font-weight: 500;
+}
+
+.navbar-nav .nav-link.active i {
+    color: #fff;
+}
