@@ -17,7 +17,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .sessionManagement( c ->
-                    c.sessionCreationPolicy(SessionCreationPolicy.STATELESS) )
+                    c.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) )
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for simplicity, not recommended for production
                 .authorizeHttpRequests(auth -> auth  //.anyRequest().permitAll());
                         .requestMatchers("/register", "/login", "/", "/books", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
