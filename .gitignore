@@ -34,3 +34,8 @@ build/
 
 ### Credentials
 .env
+*.pem
+*.jks
+*.key
+*.csr
+*.crt
