@@ -41,10 +41,9 @@ public class BookController {
             throws BookNotFoundException{
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId));
         book.setBook_name(bookDetails.getBook_name());
-        book.setAuthor_name(bookDetails.getAuthor_name());
+        book.setAuthors(bookDetails.getAuthors());
         book.setIsbn(bookDetails.getIsbn());
-        Book updatedBook = bookRepository.save(book);
-        return updatedBook;
+        return bookRepository.save(book);
     }
 
     // Delete a Book

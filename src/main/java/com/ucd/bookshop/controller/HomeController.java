@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class HomeController {
     @RequestMapping("/")
     public String index(Model model ) {
-         model.addAttribute("name", "Luis");
         return "index";
     }
 }

@@ -2,16 +2,18 @@ package com.ucd.bookshop.controller;
 
 import com.ucd.bookshop.model.Book;
 import com.ucd.bookshop.repository.BookRepository;
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-@AllArgsConstructor
 @Controller
 @RequestMapping("/books")
 public class BookWebController {
     private final BookRepository bookRepository;
+
+    public BookWebController(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
+    }
 
     @GetMapping
     public String listBooks(Model model) {

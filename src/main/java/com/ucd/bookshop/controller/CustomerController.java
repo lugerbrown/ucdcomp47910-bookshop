@@ -2,44 +2,27 @@ package com.ucd.bookshop.controller;
 
 import com.ucd.bookshop.model.Customer;
 import com.ucd.bookshop.repository.CustomerRepository;
-import com.ucd.bookshop.dto.CustomerRegistrationDTO;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@AllArgsConstructor
 @RequestMapping("/customers")
 public class CustomerController {
-    private final CustomerRepository customerRepository;
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public CustomerRegistrationDTO registerCustomer(@RequestBody CustomerRegistrationDTO dto) {
-        // In production, hash the password before saving!
-        Customer customer = new Customer();
-        customer.setUsername(dto.getUsername());
-        customer.setPassword(passwordEncoder.encode(dto.getPassword()));
-        customer.setName(dto.getName());
-        customer.setSurname(dto.getSurname());
-        customer.setDateOfBirth(dto.getDateOfBirth());
-        customer.setAddress(dto.getAddress());
-        customer.setPhoneNumber(dto.getPhoneNumber());
-        customer.setEmail(dto.getEmail());
+    public Customer registerCustomer(@RequestBody Customer customer) {
         customer.setRole(Customer.Role.CUSTOMER);
+        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
         Customer saved = customerRepository.save(customer);
-        // Map back to DTO (do not include password)
-        CustomerRegistrationDTO responseDto = new CustomerRegistrationDTO();
-        responseDto.setUsername(saved.getUsername());
-        responseDto.setName(saved.getName());
-        responseDto.setSurname(saved.getSurname());
-        responseDto.setDateOfBirth(saved.getDateOfBirth());
-        responseDto.setAddress(saved.getAddress());
-        responseDto.setPhoneNumber(saved.getPhoneNumber());
-        responseDto.setEmail(saved.getEmail());
-        return responseDto;
+        saved.setPassword(null);
+        return saved;
     }
 
     @GetMapping
