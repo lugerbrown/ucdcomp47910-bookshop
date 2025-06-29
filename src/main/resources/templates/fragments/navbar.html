@@ -5,6 +5,11 @@
     <div th:fragment="navbar">
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container-fluid">
+                <!-- Brand with logo -->
+                <a class="navbar-brand" th:href="@{/}">
+                    <img th:src="@{/images/logo.svg}" alt="BookStore Logo" width="30" height="30" class="d-inline-block align-text-top me-2">
+                    BookShop 🌐
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
