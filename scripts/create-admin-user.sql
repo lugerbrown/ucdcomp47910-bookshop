@@ -4,7 +4,7 @@
 
 -- First, insert into the base users table
 -- Username: admin
--- Password: admin (hashed using bcrypt) (https://bcrypt-generator.com/)
+-- Password: password (hashed using bcrypt) (https://bcrypt-generator.com/)
 INSERT INTO users (username, password, role)
 VALUES ('admin', '$2a$12$PPj/kgR5Ssm2ZJirdV1zWOM5N/zGIUn5GWpeISyaMZ6b7oeoo8012', 'ADMIN');
 
