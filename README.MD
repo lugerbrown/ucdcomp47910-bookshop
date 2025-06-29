@@ -1,3 +1,56 @@
+# COMP47910 BookStore - Secure Web Application
+
+This is a web-based bookstore application built with Spring Boot, designed for educational purposes as part of the **University College Dublin Secure Software Engineering module (COMP47910)**. The application serves as a practical platform to explore and implement security best practices in web development.
+
+## Project Overview
+
+The BookStore application is a full-featured e-commerce web shop that includes:
+- **User Authentication & Authorization**: User registration, login, and role-based access control
+- **Book Management**: CRUD operations for books and authors
+- **Shopping Cart & Checkout**: Complete shopping experience with cart management
+- **Admin Panel**: Administrative interface for managing books, authors, and users
+- **Security Features**: SSL/TLS encryption, secure database connections, and authentication mechanisms
+
+This project demonstrates real-world security challenges and solutions commonly encountered in web application development, making it an ideal learning tool for understanding secure coding practices, authentication systems, and data protection strategies.
+
+## Requirements
+
+### Java Environment
+- **Java 17** or higher (JDK)
+- **Maven 3.6+** (for building the project)
+- **Spring Boot 3.5.0** (included in the project dependencies)
+
+### Container Platform (Required)
+You need a container platform to run MySQL and optionally the entire application stack:
+
+#### Docker
+- **Docker Desktop**: [Download Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- **Docker Compose**: Included with Docker Desktop
+
+#### Rancher Desktop (Alternative to Docker)
+- **Rancher Desktop**: [Download Rancher Desktop](https://rancherdesktop.io/)
+- Provides Docker-compatible container runtime with Kubernetes support
+
+### Development Tools (Optional)
+
+#### Tilt (Optional - for enhanced development workflow)
+- **Tilt**: [Install Tilt](https://docs.tilt.dev/install.html)
+- Automates local development environment management
+- Provides live reload and monitoring capabilities
+- Not required but recommended for active development
+
+### System Requirements
+- **Operating System**: Windows 10+, macOS 10.15+, or Linux
+- **Memory**: 4GB RAM minimum (8GB recommended)
+- **Disk Space**: 2GB free space for containers and dependencies
+
+### Installation Links
+- [Java 17 (OpenJDK)](https://openjdk.org/projects/jdk/17/)
+- [Maven](https://maven.apache.org/install.html)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Rancher Desktop](https://rancherdesktop.io/)
+- [Tilt](https://docs.tilt.dev/install.html)
+
 # Setup
 
 This application requires sensitive information such as database credentials and SSL certificates, which are not included in the repository for security reasons. Instead, these are provided via a `.env` file located in the `docker/` directory. The `.env` file is essential for configuring the database connection and SSL truststore used by the application.
@@ -37,6 +90,29 @@ To run MYSQL server only using the configured env variables.
 ``` bash
 docker-compose -f docker/docker-compose.yml --env-file docker/.env up -d
 ```
+
+## Create Admin User
+
+After starting the MySQL server, you need to create an admin user to access the admin features of the application. Execute the provided SQL script:
+
+``` bash
+# Connect to the MySQL container and execute the admin user creation script
+docker exec -i $(docker ps -q --filter "name=mysql") mysql -u root -p$(grep MYSQL_ROOT_PASSWORD docker/.env | cut -d '=' -f2) $(grep MYSQL_DATABASE docker/.env | cut -d '=' -f2) < scripts/create-admin-user.sql
+```
+
+Alternatively, you can connect to MySQL manually and run the script:
+
+``` bash
+# Connect to MySQL container
+docker exec -it $(docker ps -q --filter "name=mysql") mysql -u root -p
+
+# Then execute the SQL commands from scripts/create-admin-user.sql
+```
+
+The script creates an admin user with:
+- **Username:** admin
+- **Password:** password
+- **Role:** ADMIN
 
 ## Run the application
 
