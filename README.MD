@@ -55,17 +55,63 @@ You need a container platform to run MySQL and optionally the entire application
 
 This application requires sensitive information such as database credentials and SSL certificates, which are not included in the repository for security reasons. Instead, these are provided via a `.env` file located in the `docker/` directory. The `.env` file is essential for configuring the database connection and SSL truststore used by the application.
 
-To simplify the setup process, a script named `setup-env.sh` is provided at the root of the project. This script will:
+To simplify the setup process, two scripts are provided at the root of the project:
+- **setup-env.sh** (for macOS/Linux)
+- **setup-env.ps1** (for Windows/PowerShell)
+
+These scripts will:
 - Prompt you for the necessary database credentials and truststore password.
 - Generate the `docker/.env` file with the required environment variables.
 - Automatically create the SSL certificates and Java truststore needed for secure MySQL connections.
 
-**Note:** The `.env` file and generated certificates are not tracked by git and must be created locally using the setup script.
+**Note:** You only need to run the script appropriate for your operating system. The `.env` file and generated certificates are not tracked by git and must be created locally using the setup script.
 
-To run the setup, execute:
+**On macOS/Linux:**
 ```bash
 bash ./setup-env.sh
 ```
+
+**On Windows (PowerShell):**
+```powershell
+powershell -ExecutionPolicy Bypass -File ./setup-env.ps1
+```
+
+### Windows Requirements for setup-env.ps1
+
+To run the `setup-env.ps1` script on Windows, ensure the following requirements are met:
+
+1. **PowerShell Version**
+   - Windows PowerShell 5.1 or PowerShell Core 7+ is required.
+   - Most modern Windows 10/11 systems have a suitable version by default.
+   - **Check:** Run `powershell -v` or `pwsh -v` in a terminal.
+
+2. **OpenSSL**
+   - The script uses `openssl` to generate SSL keys and certificates.
+   - **Requirement:** OpenSSL must be installed and available in your system `PATH`.
+   - **How to get it:**
+     - [Install Git for Windows](https://gitforwindows.org/) (OpenSSL is included in `C:\Program Files\Git\usr\bin\openssl.exe`), or
+     - [Download OpenSSL for Windows](https://slproweb.com/products/Win32OpenSSL.html) and add it to your `PATH`.
+   - **Check:** Run `openssl version` in PowerShell.
+
+3. **Java (JDK) and keytool**
+   - The script uses `keytool` (bundled with the JDK) to create/import the Java truststore.
+   - **Requirement:** Java JDK 17+ must be installed, and `keytool` must be in your `PATH`.
+   - **How to get it:** [Download OpenJDK 17+](https://adoptium.net/temurin/releases/?version=17) and follow the install instructions.
+   - **Check:** Run `java -version` and `keytool -help` in PowerShell.
+
+4. **Script Execution Policy**
+   - You may need to allow script execution:
+     - Run PowerShell as Administrator and execute:
+       ```powershell
+       Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+       ```
+     - Or, use the `-ExecutionPolicy Bypass` flag as shown above.
+
+5. **Write Permissions**
+   - Ensure you have permission to write to the `docker/` directory and its subfolders.
+
+If any of these tools are missing or not in your `PATH`, the script may fail. Please install and configure them before running `setup-env.ps1`.
+
 Follow the prompts to enter your credentials and details. After setup, you can start the MySQL server and the application as described below.
 
 ### Example `.env` file
