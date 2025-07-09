@@ -3,7 +3,6 @@ package com.ucd.bookshop.controller;
 import com.ucd.bookshop.model.Cart;
 import com.ucd.bookshop.model.Customer;
 import com.ucd.bookshop.repository.CustomerRepository;
-import lombok.AllArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -13,9 +12,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
-@AllArgsConstructor
 public class CheckoutWebController {
     private final CustomerRepository customerRepository;
+
+    public CheckoutWebController(CustomerRepository customerRepository) {
+        this.customerRepository = customerRepository;
+    }
 
     @GetMapping("/checkout")
     public String showCheckout(@AuthenticationPrincipal UserDetails userDetails, Model model) {

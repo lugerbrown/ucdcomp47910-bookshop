@@ -8,7 +8,6 @@ import com.ucd.bookshop.repository.BookRepository;
 import com.ucd.bookshop.repository.CartItemRepository;
 import com.ucd.bookshop.repository.CartRepository;
 import com.ucd.bookshop.repository.CustomerRepository;
-import lombok.AllArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -16,12 +15,18 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@AllArgsConstructor
 public class CartWebController {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final BookRepository bookRepository;
     private final CustomerRepository customerRepository;
+
+    public CartWebController(CartRepository cartRepository, CartItemRepository cartItemRepository, BookRepository bookRepository, CustomerRepository customerRepository) {
+        this.cartRepository = cartRepository;
+        this.cartItemRepository = cartItemRepository;
+        this.bookRepository = bookRepository;
+        this.customerRepository = customerRepository;
+    }
 
     @GetMapping("/cart")
     public String viewCart(@AuthenticationPrincipal UserDetails userDetails, Model model) {

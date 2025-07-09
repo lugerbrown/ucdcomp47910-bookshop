@@ -4,7 +4,6 @@ import com.ucd.bookshop.exception.BookNotFoundException;
 import com.ucd.bookshop.model.Book;
 import com.ucd.bookshop.repository.BookRepository;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,9 +12,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/books")
-@AllArgsConstructor
 public class BookController {
     BookRepository bookRepository;
+
+    public BookController(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
+    }
 
     // Get All Books
     @GetMapping

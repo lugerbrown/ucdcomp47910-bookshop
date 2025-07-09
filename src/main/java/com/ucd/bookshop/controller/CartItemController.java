@@ -2,16 +2,18 @@ package com.ucd.bookshop.controller;
 
 import com.ucd.bookshop.model.CartItem;
 import com.ucd.bookshop.repository.CartItemRepository;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@AllArgsConstructor
 @RequestMapping("/cart-items")
 public class CartItemController {
     private CartItemRepository cartItemRepository;
+
+    public CartItemController(CartItemRepository cartItemRepository) {
+        this.cartItemRepository = cartItemRepository;
+    }
 
     @GetMapping
     public List<CartItem> getAllCartItems() {
