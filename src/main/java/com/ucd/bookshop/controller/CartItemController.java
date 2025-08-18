@@ -2,9 +2,11 @@ package com.ucd.bookshop.controller;
 
 import com.ucd.bookshop.model.CartItem;
 import com.ucd.bookshop.repository.CartItemRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @RequestMapping("/cart-items")
@@ -15,13 +17,13 @@ public class CartItemController {
         this.cartItemRepository = cartItemRepository;
     }
 
-    @GetMapping
-    public List<CartItem> getAllCartItems() {
-        return cartItemRepository.findAll();
-    }
-
     @GetMapping("/{id}")
-    public CartItem getCartItemById(@PathVariable Long id) {
-        return cartItemRepository.findById(id).orElse(null);
+    public CartItem getCartItemById(@PathVariable Long id, @AuthenticationPrincipal UserDetails principal) {
+        if (principal == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        CartItem item = cartItemRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (item.getCart() == null || item.getCart().getCustomer() == null || !item.getCart().getCustomer().getUsername().equals(principal.getUsername())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        return item;
     }
 } 

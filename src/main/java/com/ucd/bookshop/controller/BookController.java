@@ -4,7 +4,7 @@ import com.ucd.bookshop.exception.BookNotFoundException;
 import com.ucd.bookshop.model.Book;
 import com.ucd.bookshop.repository.BookRepository;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,8 +27,8 @@ public class BookController {
 
     // Create a new Book
     @PostMapping
-    public Book newBook(@Valid @RequestBody Book newBook)
-    {
+    @PreAuthorize("hasRole('ADMIN')")
+    public Book newBook(@Valid @RequestBody Book newBook) {
         return bookRepository.save(newBook);
     }
 
@@ -39,8 +39,9 @@ public class BookController {
 
     // Update an Existing Book
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public Book updateBook(@PathVariable(value="id") Long bookId, @Valid @RequestBody Book bookDetails)
-            throws BookNotFoundException{
+            throws BookNotFoundException {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId));
         book.setBook_name(bookDetails.getBook_name());
         book.setAuthors(bookDetails.getAuthors());
@@ -50,7 +51,8 @@ public class BookController {
 
     // Delete a Book
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteBook(@PathVariable(value="id") Long bookId) throws BookNotFoundException {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteBook(@PathVariable(value="id") Long bookId) throws BookNotFoundException {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId));
         bookRepository.delete(book);
         return ResponseEntity.ok().build();

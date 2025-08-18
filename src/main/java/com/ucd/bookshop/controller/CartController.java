@@ -7,7 +7,10 @@ import com.ucd.bookshop.repository.CartRepository;
 import com.ucd.bookshop.repository.CartItemRepository;
 import com.ucd.bookshop.repository.BookRepository;
 import com.ucd.bookshop.repository.CustomerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -27,38 +30,65 @@ public class CartController {
     }
 
     @GetMapping("/by-customer/{customerId}")
-    public Cart getCartByCustomerId(@PathVariable Long customerId) {
+    public Cart getCartByCustomerId(@PathVariable Long customerId, @AuthenticationPrincipal UserDetails principal) {
+        enforceCustomerOwnership(customerId, principal);
         return cartRepository.findByCustomerId(customerId);
     }
 
     @GetMapping("/{cartId}/items")
-    public List<CartItem> getCartItems(@PathVariable Long cartId) {
-        Cart cart = cartRepository.findById(cartId).orElse(null);
-        return cart != null ? cart.getItems() : null;
+    public List<CartItem> getCartItems(@PathVariable Long cartId, @AuthenticationPrincipal UserDetails principal) {
+        Cart cart = resolvedOwnedCart(cartId, principal);
+        return cart.getItems();
     }
 
     @PostMapping("/{cartId}/add-item")
-    public CartItem addItemToCart(@PathVariable Long cartId, @RequestBody AddItemRequest request) {
-        Cart cart = cartRepository.findById(cartId).orElse(null);
+    public CartItem addItemToCart(@PathVariable Long cartId, @RequestBody AddItemRequest request, @AuthenticationPrincipal UserDetails principal) {
+        Cart cart = resolvedOwnedCart(cartId, principal);
         Book book = bookRepository.findById(request.bookId).orElse(null);
-        if (cart == null || book == null) return null;
+        if (book == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found");
+        }
         CartItem item = new CartItem(cart, book, request.quantity);
         return cartItemRepository.save(item);
     }
 
     @DeleteMapping("/{cartId}/remove-item/{itemId}")
-    public void removeItemFromCart(@PathVariable Long cartId, @PathVariable Long itemId) {
+    public void removeItemFromCart(@PathVariable Long cartId, @PathVariable Long itemId, @AuthenticationPrincipal UserDetails principal) {
+        resolvedOwnedCart(cartId, principal); // ensures ownership before deletion
         cartItemRepository.deleteById(itemId);
     }
 
     @GetMapping("/{cartId}/total-price")
-    public double getTotalPrice(@PathVariable Long cartId) {
+    public double getTotalPrice(@PathVariable Long cartId, @AuthenticationPrincipal UserDetails principal) {
+        Cart cart = resolvedOwnedCart(cartId, principal);
+        return cart.getTotalPrice();
+    }
+
+    private void enforceCustomerOwnership(Long customerId, UserDetails principal) {
+        if (principal == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        var customer = customerRepository.findByUsername(principal.getUsername());
+        if (customer == null || !customer.getId().equals(customerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    private Cart resolvedOwnedCart(Long cartId, UserDetails principal) {
+        if (principal == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         Cart cart = cartRepository.findById(cartId).orElse(null);
-        return cart != null ? cart.getTotalPrice() : 0.0;
+        if (cart == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        var owner = cart.getCustomer();
+        if (owner == null || !owner.getUsername().equals(principal.getUsername())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        return cart;
     }
 
     public static class AddItemRequest {
-        public Long bookId;
-        public int quantity;
+    private Long bookId;
+    private int quantity;
+    public Long getBookId() { return bookId; }
+    public void setBookId(Long bookId) { this.bookId = bookId; }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
     }
 } 

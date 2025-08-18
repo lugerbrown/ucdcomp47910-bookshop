@@ -9,6 +9,8 @@ import com.ucd.bookshop.repository.CartItemRepository;
 import com.ucd.bookshop.repository.CartRepository;
 import com.ucd.bookshop.repository.CustomerRepository;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -68,6 +70,10 @@ public class CartWebController {
     @PostMapping("/cart/remove/{itemId}")
     public String removeFromCart(@PathVariable Long itemId, @AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) return "redirect:/login";
+        CartItem item = cartItemRepository.findById(itemId).orElse(null);
+        if (item == null || item.getCart() == null || item.getCart().getCustomer() == null || !item.getCart().getCustomer().getUsername().equals(userDetails.getUsername())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
         cartItemRepository.deleteById(itemId);
         return "redirect:/cart";
     }
