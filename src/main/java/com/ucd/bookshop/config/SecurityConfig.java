@@ -18,6 +18,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -40,7 +41,7 @@ public class SecurityConfig {
                 this.environment = environment;
         }
     @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationHandlers authenticationHandlers, LoginRateLimitingFilter loginRateLimitingFilter) throws Exception {
                 http
                         .sessionManagement( c ->
                                 c.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -75,7 +76,8 @@ public class SecurityConfig {
                         )
                         .formLogin(form -> form
                                         .loginPage("/login")
-                                        .defaultSuccessUrl("/", true)
+                                        .successHandler(authenticationHandlers)
+                                        .failureHandler(authenticationHandlers)
                                         .permitAll()
                         )
                         .logout(logout -> logout
@@ -97,6 +99,9 @@ public class SecurityConfig {
                             .preload(true)
                             .maxAgeInSeconds(31536000)));
                 }
+
+                // Add login rate limiting filter prior to authentication processing
+                http.addFilterBefore(loginRateLimitingFilter, UsernamePasswordAuthenticationFilter.class);
 
                 return http.build();
         }
