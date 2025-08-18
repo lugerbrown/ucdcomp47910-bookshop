@@ -39,3 +39,44 @@ build/
 *.key
 *.csr
 *.crt
+
+
+### LaTeX ###
+# LaTeX auxiliary files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.idx
+*.ind
+*.ilg
+*.glo
+*.gls
+*.glg
+*.acn
+*.acr
+*.alg
+*.ist
+*.bcf
+*.run.xml
+*.nav
+*.snm
+*.vrb
+*.xdv
+*.dvi
+*.ps
+*.eps
+
+# LaTeX temporary and backup files
+*.bak
+*.tmp
+*.swp
+*.swo
+*~
