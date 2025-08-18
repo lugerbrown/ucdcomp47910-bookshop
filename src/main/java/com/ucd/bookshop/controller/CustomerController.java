@@ -3,6 +3,7 @@ package com.ucd.bookshop.controller;
 import com.ucd.bookshop.model.Customer;
 import com.ucd.bookshop.model.User;
 import com.ucd.bookshop.repository.CustomerRepository;
+import com.ucd.bookshop.service.RegistrationValidationService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,9 +20,11 @@ import java.util.List;
 public class CustomerController {
     private CustomerRepository customerRepository;
     private PasswordEncoder passwordEncoder;
+    private RegistrationValidationService registrationValidationService;
 
     @PostMapping("/register")
     public CustomerDto registerCustomer(@Valid @RequestBody CustomerRegistrationDto request) {
+        registrationValidationService.validate(request.getUsername(), request.getPassword());
         Customer customer = new Customer();
         customer.setUsername(request.getUsername());
         customer.setPassword(passwordEncoder.encode(request.getPassword()));

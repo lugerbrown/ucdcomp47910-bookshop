@@ -19,6 +19,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
 @Configuration
 @EnableWebSecurity
@@ -85,6 +87,18 @@ public class SecurityConfig {
                                         .logoutSuccessUrl("/")
                                         .permitAll()
                         );
+
+                // Standard security headers (CSP, Referrer-Policy, Permissions-Policy, X-Content-Type-Options)
+                http.headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"))
+                        .referrerPolicy(rp -> rp.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
+                        .httpStrictTransportSecurity(hsts -> { /* already conditionally added below for prod */ })
+                        .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=()"))
+                        .xssProtection(x -> x.disable()) // modern browsers rely on CSP; avoid legacy heuristic
+                        .frameOptions(fo -> fo.deny())
+                        .cacheControl(cc -> {})
+                        .contentTypeOptions(cto -> {})
+                );
 
                 // Enforce HTTPS and add HSTS only when 'prod' profile is active
                 boolean prod = false;
