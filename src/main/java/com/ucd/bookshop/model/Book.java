@@ -10,6 +10,12 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.CascadeType;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,7 +28,8 @@ public class Book {
     private Long id;
 
     @NotBlank
-    private String book_name;
+    @Size(max = 150)
+    private String bookName;
 
     @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "book_author",
@@ -31,31 +38,35 @@ public class Book {
     private Set<Author> authors = new HashSet<>();
 
     @NotBlank
+    @Pattern(regexp = "^(97(8|9))?\\d{9}(\\d|X)$", message = "Invalid ISBN (expect ISBN-10 or ISBN-13 numeric)")
     private String isbn;
 
+    @Min(value = 1450, message = "Year too early")
+    @Max(value = 2100, message = "Year too large")
     private Integer year;
+
+    @DecimalMin(value = "0.0", inclusive = true, message = "Price must be >= 0")
+    @Digits(integer = 8, fraction = 2, message = "Price must have max 8 digits and 2 decimals")
     private Double price;
+
+    @Min(0)
+    @Max(100000)
     private Integer numberOfCopies;
 
     public Book() {
         super();
     }
-    public Book(Long id, String book_name, String isbn, Integer year, Double price, Integer numberOfCopies) {
+    public Book(Long id, String bookName, String isbn, Integer year, Double price, Integer numberOfCopies) {
         this.id = id;
-        this.book_name = book_name;
+        this.bookName = bookName;
         this.isbn = isbn;
         this.year = year;
         this.price = price;
         this.numberOfCopies = numberOfCopies;
     }
 
-    public String getBook_name() {
-        return book_name;
-    }
-
-    public void setBook_name(String book_name) {
-        this.book_name = book_name;
-    }
+    public String getBookName() { return bookName; }
+    public void setBookName(String bookName) { this.bookName = bookName; }
 
     public Set<Author> getAuthors() {
         return authors;

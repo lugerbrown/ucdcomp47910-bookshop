@@ -44,7 +44,7 @@ public class BookWebController {
             }
             book.setAuthors(authors);
         }
-        bookRepository.save(book);
+    bookRepository.save(book);
         return "redirect:/books";
     }
 
@@ -72,7 +72,7 @@ public class BookWebController {
             book.setAuthors(new HashSet<>());
         }
 
-        bookRepository.save(book);
+    bookRepository.save(book);
         return "redirect:/books";
     }
 

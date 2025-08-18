@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.server.ResponseStatusException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -42,7 +44,7 @@ public class CartController {
     }
 
     @PostMapping("/{cartId}/add-item")
-    public CartItem addItemToCart(@PathVariable Long cartId, @RequestBody AddItemRequest request, @AuthenticationPrincipal UserDetails principal) {
+    public CartItem addItemToCart(@PathVariable Long cartId, @Valid @RequestBody AddItemRequest request, @AuthenticationPrincipal UserDetails principal) {
         Cart cart = resolvedOwnedCart(cartId, principal);
     Book book = bookRepository.findById(request.getBookId()).orElse(null);
         if (book == null) {
@@ -92,11 +94,12 @@ public class CartController {
     }
 
     public static class AddItemRequest {
-    private Long bookId;
-    private int quantity;
-    public Long getBookId() { return bookId; }
-    public void setBookId(Long bookId) { this.bookId = bookId; }
-    public int getQuantity() { return quantity; }
-    public void setQuantity(int quantity) { this.quantity = quantity; }
+        private Long bookId;
+        @Min(value = 1, message = "Quantity must be >= 1")
+        private int quantity;
+        public Long getBookId() { return bookId; }
+        public void setBookId(Long bookId) { this.bookId = bookId; }
+        public int getQuantity() { return quantity; }
+        public void setQuantity(int quantity) { this.quantity = quantity; }
     }
 } 

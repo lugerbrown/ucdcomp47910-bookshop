@@ -8,6 +8,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
@@ -19,9 +21,16 @@ public class CustomerController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public CustomerDto registerCustomer(@RequestBody Customer customer) {
-    customer.setRole(User.Role.CUSTOMER);
-        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
+    public CustomerDto registerCustomer(@Valid @RequestBody CustomerRegistrationDto request) {
+        Customer customer = new Customer();
+        customer.setUsername(request.getUsername());
+        customer.setPassword(passwordEncoder.encode(request.getPassword()));
+        customer.setName(request.getName());
+        customer.setSurname(request.getSurname());
+        customer.setAddress(request.getAddress());
+        customer.setPhoneNumber(request.getPhoneNumber());
+        customer.setEmail(request.getEmail());
+        customer.setRole(User.Role.CUSTOMER);
         Customer saved = customerRepository.save(customer);
         return CustomerDto.from(saved);
     }
@@ -79,5 +88,36 @@ public class CustomerController {
         public String getSurname() { return surname; }
         public String getEmail() { return email; }
         public String getRole() { return role; }
+    }
+
+    public static class CustomerRegistrationDto {
+        @NotBlank @Size(min = 3, max = 40)
+        private String username;
+        @NotBlank @Size(min = 8, max = 100)
+        private String password;
+        @NotBlank @Size(max = 60)
+        private String name;
+        @NotBlank @Size(max = 60)
+        private String surname;
+        @NotBlank @Size(max = 120)
+        private String address;
+        @NotBlank @Pattern(regexp = "^\\+?[0-9\\- ]{7,20}$", message = "Invalid phone number")
+        private String phoneNumber;
+        @NotBlank @Email @Size(max = 120)
+        private String email;
+        public String getUsername() { return username; }
+        public void setUsername(String username) { this.username = username; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public String getSurname() { return surname; }
+        public void setSurname(String surname) { this.surname = surname; }
+        public String getAddress() { return address; }
+        public void setAddress(String address) { this.address = address; }
+        public String getPhoneNumber() { return phoneNumber; }
+        public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
     }
 } 

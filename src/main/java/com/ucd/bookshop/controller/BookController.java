@@ -43,7 +43,7 @@ public class BookController {
     public Book updateBook(@PathVariable(value="id") Long bookId, @Valid @RequestBody Book bookDetails)
             throws BookNotFoundException {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId));
-        book.setBook_name(bookDetails.getBook_name());
+    book.setBookName(bookDetails.getBookName());
         book.setAuthors(bookDetails.getAuthors());
         book.setIsbn(bookDetails.getIsbn());
         return bookRepository.save(book);

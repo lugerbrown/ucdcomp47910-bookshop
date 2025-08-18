@@ -21,7 +21,7 @@
                         </thead>
                         <tbody>
                         <tr th:each="item : ${cart.items}">
-                            <td th:text="${item.book.book_name}"></td>
+                            <td th:text="${item.book.bookName}"></td>
                             <td th:text="${item.quantity}"></td>
                             <td th:text="${item.book.price}"></td>
                             <td th:text="${item.totalPrice}"></td>

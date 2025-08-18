@@ -26,7 +26,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="book : ${books}">
-                    <td th:text="${book.book_name}"></td>
+                    <td th:text="${book.bookName}"></td>
                     <td>
                         <span th:each="author, iterStat : ${book.authors}">
                             <span th:text="${author.name}"></span><span th:if="!${iterStat.last}">, </span>
