@@ -44,17 +44,25 @@ public class CartController {
     @PostMapping("/{cartId}/add-item")
     public CartItem addItemToCart(@PathVariable Long cartId, @RequestBody AddItemRequest request, @AuthenticationPrincipal UserDetails principal) {
         Cart cart = resolvedOwnedCart(cartId, principal);
-        Book book = bookRepository.findById(request.bookId).orElse(null);
+    Book book = bookRepository.findById(request.getBookId()).orElse(null);
         if (book == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found");
         }
-        CartItem item = new CartItem(cart, book, request.quantity);
+    CartItem item = new CartItem(cart, book, request.getQuantity());
         return cartItemRepository.save(item);
     }
 
     @DeleteMapping("/{cartId}/remove-item/{itemId}")
     public void removeItemFromCart(@PathVariable Long cartId, @PathVariable Long itemId, @AuthenticationPrincipal UserDetails principal) {
-        resolvedOwnedCart(cartId, principal); // ensures ownership before deletion
+        Cart cart = resolvedOwnedCart(cartId, principal); // ensures cart ownership
+        CartItem item = cartItemRepository.findById(itemId).orElse(null);
+        if (item == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        // Ensure the item actually belongs to the owned cart to prevent cross-cart deletion (IDOR)
+        if (item.getCart() == null || !item.getCart().getId().equals(cart.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
         cartItemRepository.deleteById(itemId);
     }
 

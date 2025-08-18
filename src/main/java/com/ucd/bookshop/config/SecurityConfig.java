@@ -18,9 +18,12 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .sessionManagement( c ->
-                    c.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) )
+    http
+        .sessionManagement( c ->
+            c.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+             // Explicitly migrate session ID on authentication to prevent session fixation (Spring does this by default, made explicit for auditability)
+             .sessionFixation(sf -> sf.migrateSession())
+        )
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for simplicity, not recommended for production
                 .authorizeHttpRequests(auth -> auth
                         // Allow static resources (CSS, JS, images)
