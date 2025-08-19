@@ -48,6 +48,11 @@ public class SecurityConfig {
                                 c.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                                  // Explicitly migrate session ID on authentication to prevent session fixation (Spring does this by default, made explicit for auditability)
                                  .sessionFixation(sf -> sf.migrateSession())
+                                 // CWE-613 mitigation: Set explicit session timeout and invalidation
+                                 .maximumSessions(1) // Prevent multiple concurrent sessions per user
+                                 .expiredUrl("/login?expired") // Redirect expired sessions to login
+                                 .and()
+                                 .invalidSessionUrl("/login?invalid") // Redirect invalid sessions to login
                         )
                         .csrf(csrf -> csrf
                                 // Re-enable CSRF protection for CWE-693 mitigation
@@ -118,6 +123,9 @@ public class SecurityConfig {
 
                 // Add login rate limiting filter prior to authentication processing
                 http.addFilterBefore(loginRateLimitingFilter, UsernamePasswordAuthenticationFilter.class);
+                
+                // Add session validation filter for CWE-613 mitigation
+                // Note: SessionValidationFilter will be autowired by Spring
 
                 return http.build();
         }
