@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
@@ -42,21 +44,24 @@ public class SecurityConfig {
                 this.environment = environment;
         }
     @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationHandlers authenticationHandlers, LoginRateLimitingFilter loginRateLimitingFilter) throws Exception {
+        public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationHandlers authenticationHandlers, LoginRateLimitingFilter loginRateLimitingFilter, CorsConfigurationSource corsConfigurationSource) throws Exception {
                 http
-                        .sessionManagement( c ->
-                                c.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                                 // Explicitly migrate session ID on authentication to prevent session fixation (Spring does this by default, made explicit for auditability)
-                                 .sessionFixation(sf -> sf.migrateSession())
-                                 // CWE-613 mitigation: Set explicit session timeout and invalidation
-                                 .maximumSessions(1) // Prevent multiple concurrent sessions per user
-                                 .expiredUrl("/login?expired") // Redirect expired sessions to login
-                                 .and()
-                                 .invalidSessionUrl("/login?invalid") // Redirect invalid sessions to login
+                        // Enable CORS with the defined configuration
+                        .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                        .sessionManagement( sessionManagement ->
+                                sessionManagement
+                                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                                        // Explicitly migrate session ID on authentication to prevent session fixation (Spring does this by default, made explicit for auditability)
+                                        .sessionFixation(sf -> sf.migrateSession())
+                                        // CWE-613 mitigation: Set explicit session timeout and invalidation
+                                        .invalidSessionUrl("/login?invalid") // Redirect invalid sessions to login
+                                        .maximumSessions(1) // Prevent multiple concurrent sessions per user
+                                        .expiredUrl("/login?expired") // Redirect expired sessions to login
                         )
                         .csrf(csrf -> csrf
                                 // Re-enable CSRF protection for CWE-693 mitigation
                                 .ignoringRequestMatchers("/api/**") // API endpoints can use stateless authentication if needed
+                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) // Allow JavaScript access to CSRF token
                         )
                         .authorizeHttpRequests(auth -> auth
                                         // Allow static resources (CSS, JS, images)
@@ -97,7 +102,7 @@ public class SecurityConfig {
 
                 // Standard security headers (CSP, Referrer-Policy, Permissions-Policy, X-Content-Type-Options)
                 http.headers(headers -> headers
-                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"))
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' http://localhost:* https://localhost:*; upgrade-insecure-requests"))
                         .referrerPolicy(rp -> rp.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
                         .httpStrictTransportSecurity(hsts -> { /* already conditionally added below for prod */ })
                         .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=()"))

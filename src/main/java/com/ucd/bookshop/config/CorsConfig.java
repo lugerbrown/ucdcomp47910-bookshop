@@ -21,6 +21,7 @@ public class CorsConfig {
         configuration.setAllowCredentials(true);
         configuration.addAllowedOriginPattern("http://localhost:*"); // Development
         configuration.addAllowedOriginPattern("https://localhost:*"); // Development HTTPS
+        configuration.addAllowedOrigin("null"); // Allow null origin for file:// and private browsing
         
         // Allow standard HTTP methods
         configuration.addAllowedMethod("GET");

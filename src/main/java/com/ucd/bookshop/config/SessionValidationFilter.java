@@ -1,5 +1,6 @@
 package com.ucd.bookshop.config;
 
+import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,10 +25,20 @@ public class SessionValidationFilter extends OncePerRequestFilter {
         this.sessionManagementService = sessionManagementService;
     }
 
+    private void addCorsHeaders(HttpServletRequest request, HttpServletResponse response) {
+        String origin = request.getHeader("Origin");
+        if (origin != null && (origin.startsWith("http://localhost") || origin.startsWith("https://localhost"))) {
+            response.setHeader("Access-Control-Allow-Origin", origin);
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With");
+        }
+    }
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, 
-                                  HttpServletResponse response, 
-                                  FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@Nonnull HttpServletRequest request, 
+                                  @Nonnull HttpServletResponse response, 
+                                  @Nonnull FilterChain filterChain) throws ServletException, IOException {
         
         // Skip session validation for public endpoints
         if (isPublicEndpoint(request)) {
@@ -38,6 +49,7 @@ public class SessionValidationFilter extends OncePerRequestFilter {
         // Validate session for authenticated endpoints
         if (!sessionManagementService.isSessionValid()) {
             // Session is invalid or expired, redirect to login
+            addCorsHeaders(request, response);
             response.sendRedirect("/login?expired");
             return;
         }
@@ -77,7 +89,7 @@ public class SessionValidationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    protected boolean shouldNotFilter(@Nonnull HttpServletRequest request) throws ServletException {
         // Skip filtering for static resources and public endpoints
         String path = request.getRequestURI();
         return path.startsWith("/css/") || 

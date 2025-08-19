@@ -9,6 +9,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
@@ -16,6 +17,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,7 +49,8 @@ public class Book {
 
     @DecimalMin(value = "0.0", inclusive = true, message = "Price must be >= 0")
     @Digits(integer = 8, fraction = 2, message = "Price must have max 8 digits and 2 decimals")
-    private Double price;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal price;
 
     @Min(0)
     @Max(100000)
@@ -56,7 +59,7 @@ public class Book {
     public Book() {
         super();
     }
-    public Book(Long id, String bookName, String isbn, Integer year, Double price, Integer numberOfCopies) {
+    public Book(Long id, String bookName, String isbn, Integer year, BigDecimal price, Integer numberOfCopies) {
         this.id = id;
         this.bookName = bookName;
         this.isbn = isbn;
@@ -94,8 +97,8 @@ public class Book {
 
     public Integer getYear() { return year; }
     public void setYear(Integer year) { this.year = year; }
-    public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
     public Integer getNumberOfCopies() { return numberOfCopies; }
     public void setNumberOfCopies(Integer numberOfCopies) { this.numberOfCopies = numberOfCopies; }
 

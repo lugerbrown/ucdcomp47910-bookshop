@@ -25,6 +25,16 @@ public class LoginRateLimitingFilter extends OncePerRequestFilter {
         this.attemptService = attemptService;
     }
 
+    private void addCorsHeaders(HttpServletRequest request, HttpServletResponse response) {
+        String origin = request.getHeader("Origin");
+        if (origin != null && (origin.startsWith("http://localhost") || origin.startsWith("https://localhost"))) {
+            response.setHeader("Access-Control-Allow-Origin", origin);
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With");
+        }
+    }
+
     @Override
     protected void doFilterInternal(@org.springframework.lang.NonNull HttpServletRequest request,
                                     @org.springframework.lang.NonNull HttpServletResponse response,
@@ -33,6 +43,7 @@ public class LoginRateLimitingFilter extends OncePerRequestFilter {
             String username = request.getParameter("username");
             String ip = clientIp(request);
             if (attemptService.isBlocked(username, ip)) {
+                addCorsHeaders(request, response);
                 response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
                 response.setContentType("text/plain;charset=UTF-8");
                 response.getOutputStream().write("Too many login attempts. Please try again later.".getBytes(StandardCharsets.UTF_8));
