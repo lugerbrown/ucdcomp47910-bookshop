@@ -33,6 +33,7 @@
                                     <i class="bi bi-pencil-square"></i> Edit
                                 </a>
                                 <form th:action="@{'/authors/delete/' + ${author.id}}" method="post" style="display:inline;">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                     <button type="submit" class="btn btn-danger btn-sm"
                                             onclick="return confirm('Are you sure? This will remove the author from all associated books.')">
                                         <i class="bi bi-trash"></i> Delete

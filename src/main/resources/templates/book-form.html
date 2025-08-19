@@ -10,6 +10,7 @@
                 <div class="card-body">
                     <h2 class="card-title text-center mb-4" th:text="${book.id} != null ? 'Edit Book' : 'Add Book'"></h2>
                     <form th:action="${book.id} != null ? @{'/books/edit/' + ${book.id}} : @{/books/add}" th:object="${book}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                         <div class="mb-3">
                             <label class="form-label">Title:</label>
                             <input type="text" th:field="*{bookName}" class="form-control" required>

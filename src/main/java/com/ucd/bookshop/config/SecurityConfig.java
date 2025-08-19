@@ -13,7 +13,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,7 +49,10 @@ public class SecurityConfig {
                                  // Explicitly migrate session ID on authentication to prevent session fixation (Spring does this by default, made explicit for auditability)
                                  .sessionFixation(sf -> sf.migrateSession())
                         )
-                        .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for simplicity, not recommended for production
+                        .csrf(csrf -> csrf
+                                // Re-enable CSRF protection for CWE-693 mitigation
+                                .ignoringRequestMatchers("/api/**") // API endpoints can use stateless authentication if needed
+                        )
                         .authorizeHttpRequests(auth -> auth
                                         // Allow static resources (CSS, JS, images)
                                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()

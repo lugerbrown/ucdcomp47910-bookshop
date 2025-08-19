@@ -40,13 +40,15 @@
                             <i class="bi bi-pencil-square"></i> Edit
                         </a>
                         <form th:action="@{'/books/delete/' + ${book.id}}" method="post" style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">>
                                 <i class="bi bi-trash"></i> Delete
                             </button>
                         </form>
                     </td>
                     <td sec:authorize="hasRole('CUSTOMER')">
                         <form th:action="@{'/cart/add/' + ${book.id}}" method="post" style="display:inline;">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                             <input type="hidden" name="quantity" value="1" />
                             <button type="submit" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-cart-plus"></i> Add to Cart
