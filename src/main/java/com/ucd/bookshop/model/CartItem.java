@@ -34,6 +34,7 @@ public class CartItem {
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
     public double getTotalPrice() {
-        return book != null && book.getPrice() != null ? quantity * book.getPrice() : 0.0;
+        return book != null && book.getPrice() != null ? 
+            book.getPrice().multiply(java.math.BigDecimal.valueOf(quantity)).doubleValue() : 0.0;
     }
 } 
