@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Tracks authentication failures per username and per client IP to mitigate brute force (CWE-307).
+ * Enhanced with security audit logging for CWE-778 mitigation.
  * Simple in-memory implementation suitable for single-instance deployment / demo.
  * For clustered deployments this should be replaced with a distributed cache (e.g. Redis) and
  * adaptive algorithms / anomaly detection.
@@ -23,13 +24,30 @@ public class LoginAttemptService {
 
     private final Map<String, AttemptWindow> userAttempts = new ConcurrentHashMap<>();
     private final Map<String, AttemptWindow> ipAttempts = new ConcurrentHashMap<>();
+    private final SecurityAuditService auditService;
+
+    public LoginAttemptService(SecurityAuditService auditService) {
+        this.auditService = auditService;
+    }
 
     public void recordFailure(String username, String ip) {
         if (username != null && !username.isBlank()) {
-            userAttempts.compute(username.toLowerCase(), (k, aw) -> AttemptWindow.failed(aw));
+            AttemptWindow oldWindow = userAttempts.get(username.toLowerCase());
+            AttemptWindow newWindow = userAttempts.compute(username.toLowerCase(), (k, aw) -> AttemptWindow.failed(aw));
+            
+            // Log lockout event if this failure triggers a lock
+            if (newWindow.isLocked(Instant.now()) && (oldWindow == null || !oldWindow.isLocked(Instant.now()))) {
+                auditService.logAccountLockout(username, ip, newWindow.failures, LOCK_DURATION.toString());
+            }
         }
         if (ip != null && !ip.isBlank()) {
-            ipAttempts.compute(ip, (k, aw) -> AttemptWindow.failed(aw));
+            AttemptWindow oldWindow = ipAttempts.get(ip);
+            AttemptWindow newWindow = ipAttempts.compute(ip, (k, aw) -> AttemptWindow.failed(aw));
+            
+            // Log IP lockout event if this failure triggers a lock
+            if (newWindow.isLocked(Instant.now()) && (oldWindow == null || !oldWindow.isLocked(Instant.now()))) {
+                auditService.logIpLockout(ip, newWindow.failures, LOCK_DURATION.toString());
+            }
         }
     }
 

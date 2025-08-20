@@ -1,5 +1,6 @@
 package com.ucd.bookshop.controller;
 
+import com.ucd.bookshop.config.SecurityAuditService;
 import com.ucd.bookshop.model.Customer;
 import com.ucd.bookshop.model.User;
 import com.ucd.bookshop.repository.CustomerRepository;
@@ -21,49 +22,103 @@ public class CustomerController {
     private CustomerRepository customerRepository;
     private PasswordEncoder passwordEncoder;
     private RegistrationValidationService registrationValidationService;
+    private SecurityAuditService auditService;
+
+    public CustomerController(CustomerRepository customerRepository, PasswordEncoder passwordEncoder, 
+                            RegistrationValidationService registrationValidationService, SecurityAuditService auditService) {
+        this.customerRepository = customerRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.registrationValidationService = registrationValidationService;
+        this.auditService = auditService;
+    }
 
     @PostMapping("/register")
     public CustomerDto registerCustomer(@Valid @RequestBody CustomerRegistrationDto request) {
-        registrationValidationService.validate(request.getUsername(), request.getPassword());
-        Customer customer = new Customer();
-        customer.setUsername(request.getUsername());
-        customer.setPassword(passwordEncoder.encode(request.getPassword()));
-        customer.setName(request.getName());
-        customer.setSurname(request.getSurname());
-        customer.setAddress(request.getAddress());
-        customer.setPhoneNumber(request.getPhoneNumber());
-        customer.setEmail(request.getEmail());
-        customer.setRole(User.Role.CUSTOMER);
-        Customer saved = customerRepository.save(customer);
-        return CustomerDto.from(saved);
+        try {
+            registrationValidationService.validate(request.getUsername(), request.getPassword());
+            Customer customer = new Customer();
+            customer.setUsername(request.getUsername());
+            customer.setPassword(passwordEncoder.encode(request.getPassword()));
+            customer.setName(request.getName());
+            customer.setSurname(request.getSurname());
+            customer.setAddress(request.getAddress());
+            customer.setPhoneNumber(request.getPhoneNumber());
+            customer.setEmail(request.getEmail());
+            customer.setRole(User.Role.CUSTOMER);
+            Customer saved = customerRepository.save(customer);
+            
+            // Log successful customer registration
+            auditService.logUserRegistration(request.getUsername(), "SUCCESS", null);
+            
+            return CustomerDto.from(saved);
+        } catch (Exception e) {
+            // Log failed customer registration
+            auditService.logUserRegistration(request.getUsername(), "FAILED", e.getMessage());
+            throw e;
+        }
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public List<CustomerDto> getAllCustomers() {
-    return customerRepository.findAll().stream().map(CustomerDto::from).toList();
+    public List<CustomerDto> getAllCustomers(@AuthenticationPrincipal UserDetails principal) {
+        // Log admin access to customer list
+        auditService.logAdminOperation("VIEW_ALL_CUSTOMERS", "customer_list", 
+                "Admin accessed complete customer list");
+        
+        return customerRepository.findAll().stream().map(CustomerDto::from).toList();
     }
 
     @GetMapping("/{id}")
     public CustomerDto getCustomerById(@PathVariable Long id, @AuthenticationPrincipal UserDetails principal) {
         Customer customer = customerRepository.findById(id).orElse(null);
-        if (customer == null) return null;
+        if (customer == null) {
+            auditService.logAuthorizationFailure("/customers/" + id, "GET", "Customer not found");
+            return null;
+        }
+        
         enforceOwnershipOrAdmin(customer, principal);
+        
+        // Log successful access to customer data
+        String accessType = principal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")) ? "ADMIN_ACCESS" : "OWNER_ACCESS";
+        auditService.logAdminOperation("VIEW_CUSTOMER_BY_ID", "customer/" + id, 
+                accessType + " to customer " + customer.getUsername());
+        
         return CustomerDto.from(customer);
     }
 
     @GetMapping("/by-username/{username}")
     public CustomerDto getCustomerByUsername(@PathVariable String username, @AuthenticationPrincipal UserDetails principal) {
         Customer customer = customerRepository.findByUsername(username);
-        if (customer == null) return null;
+        if (customer == null) {
+            auditService.logAuthorizationFailure("/customers/by-username/" + username, "GET", "Customer not found by username");
+            return null;
+        }
+        
         enforceOwnershipOrAdmin(customer, principal);
+        
+        // Log successful access to customer data by username
+        String accessType = principal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")) ? "ADMIN_ACCESS" : "OWNER_ACCESS";
+        auditService.logAdminOperation("VIEW_CUSTOMER_BY_USERNAME", "customer/" + username, 
+                accessType + " to customer " + username);
+        
         return CustomerDto.from(customer);
     }
 
     private void enforceOwnershipOrAdmin(Customer target, UserDetails principal) {
-        if (principal == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        if (principal.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) return;
+        if (principal == null) {
+            auditService.logAuthorizationFailure("/customers/" + target.getId(), "GET", "No authentication principal");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        
+        if (principal.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            return;
+        }
+        
         if (!target.getUsername().equals(principal.getUsername())) {
+            auditService.logAuthorizationFailure("/customers/" + target.getId(), "GET", 
+                    "User " + principal.getUsername() + " attempted to access customer " + target.getUsername() + " data");
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
     }

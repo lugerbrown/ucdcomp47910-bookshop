@@ -14,15 +14,18 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Filter that blocks authentication processing if username or IP is currently locked.
+ * Enhanced with security audit logging for CWE-778 mitigation.
  */
 @Component
 @Order(1)
 public class LoginRateLimitingFilter extends OncePerRequestFilter {
 
     private final LoginAttemptService attemptService;
+    private final SecurityAuditService auditService;
 
-    public LoginRateLimitingFilter(LoginAttemptService attemptService) {
+    public LoginRateLimitingFilter(LoginAttemptService attemptService, SecurityAuditService auditService) {
         this.attemptService = attemptService;
+        this.auditService = auditService;
     }
 
     private void addCorsHeaders(HttpServletRequest request, HttpServletResponse response) {
@@ -43,6 +46,9 @@ public class LoginRateLimitingFilter extends OncePerRequestFilter {
             String username = request.getParameter("username");
             String ip = clientIp(request);
             if (attemptService.isBlocked(username, ip)) {
+                // Log rate limiting event
+                auditService.logRateLimitTriggered(ip, username, "/login", 0); // Request count would need tracking for accurate value
+                
                 addCorsHeaders(request, response);
                 response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
                 response.setContentType("text/plain;charset=UTF-8");

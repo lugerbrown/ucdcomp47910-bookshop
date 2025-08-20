@@ -12,6 +12,7 @@ import java.time.temporal.ChronoUnit;
 
 /**
  * Service for managing session security controls and CWE-613 mitigation.
+ * Enhanced with security audit logging for CWE-778 mitigation.
  * Provides centralized session management including timeout validation,
  * session cleanup, and security event handling.
  */
@@ -20,6 +21,12 @@ public class SessionManagementService {
 
     private static final int MAX_SESSION_AGE_HOURS = 24; // Maximum absolute session lifetime
     private static final int WARNING_THRESHOLD_MINUTES = 5; // Warn user before session expires
+    
+    private final SecurityAuditService auditService;
+
+    public SessionManagementService(SecurityAuditService auditService) {
+        this.auditService = auditService;
+    }
 
     /**
      * Validates if the current session is still valid based on timeout and age.
@@ -31,29 +38,57 @@ public class SessionManagementService {
             return false;
         }
 
-        // Check session age (absolute timeout)
-        long sessionAgeHours = ChronoUnit.HOURS.between(
-            Instant.ofEpochMilli(session.getCreationTime()),
-            Instant.now()
-        );
-        
-        if (sessionAgeHours >= MAX_SESSION_AGE_HOURS) {
-            invalidateSession();
+        try {
+            // Check if session has exceeded maximum age
+            long sessionAgeHours = ChronoUnit.HOURS.between(
+                Instant.ofEpochMilli(session.getCreationTime()),
+                Instant.now()
+            );
+            
+            if (sessionAgeHours >= MAX_SESSION_AGE_HOURS) {
+                auditService.logSessionEvent("SESSION_EXPIRED_MAX_AGE", session.getId(), 
+                    "Session exceeded maximum age of " + MAX_SESSION_AGE_HOURS + " hours");
+                return false;
+            }
+
+            // Check if session has exceeded inactivity timeout
+            long inactiveMinutes = ChronoUnit.MINUTES.between(
+                Instant.ofEpochMilli(session.getLastAccessedTime()),
+                Instant.now()
+            );
+            
+            if (inactiveMinutes >= 30) { // 30 minute timeout as configured
+                auditService.logSessionEvent("SESSION_EXPIRED_INACTIVITY", session.getId(), 
+                    "Session exceeded inactivity timeout of 30 minutes");
+                return false;
+            }
+
+            return true;
+        } catch (IllegalStateException e) {
+            // Session already invalidated
+            auditService.logSessionEvent("SESSION_ALREADY_INVALIDATED", "UNKNOWN", 
+                "Attempted to check invalid session");
             return false;
         }
+    }
 
-        // Check last access time (inactivity timeout)
-        long lastAccessMinutes = ChronoUnit.MINUTES.between(
-            Instant.ofEpochMilli(session.getLastAccessedTime()),
-            Instant.now()
-        );
-        
-        if (lastAccessMinutes >= 30) { // 30 minutes inactivity timeout
-            invalidateSession();
-            return false;
+    /**
+     * Refreshes the current session by updating last access time.
+     * This is automatically handled by servlet container, but can be called explicitly.
+     */
+    public void refreshSession() {
+        HttpSession session = getCurrentSession();
+        if (session != null) {
+            try {
+                // Access the session to update last access time
+                session.getLastAccessedTime();
+                auditService.logSessionEvent("SESSION_REFRESHED", session.getId(), 
+                    "Session explicitly refreshed by user request");
+            } catch (IllegalStateException e) {
+                auditService.logSessionEvent("SESSION_REFRESH_FAILED", "UNKNOWN", 
+                    "Attempted to refresh invalid session");
+            }
         }
-
-        return true;
     }
 
     /**
@@ -62,8 +97,17 @@ public class SessionManagementService {
      */
     public void invalidateSession() {
         HttpSession session = getCurrentSession();
+        String sessionId = session != null ? session.getId() : "UNKNOWN";
+        
         if (session != null) {
-            session.invalidate();
+            try {
+                session.invalidate();
+                auditService.logSessionEvent("SESSION_INVALIDATED", sessionId, 
+                    "Session manually invalidated");
+            } catch (IllegalStateException e) {
+                auditService.logSessionEvent("SESSION_ALREADY_INVALIDATED", sessionId, 
+                    "Attempted to invalidate already invalid session");
+            }
         }
         SecurityContextHolder.clearContext();
     }
@@ -83,17 +127,24 @@ public class SessionManagementService {
             Instant.now()
         );
         
-        return lastAccessMinutes >= (30 - WARNING_THRESHOLD_MINUTES);
+        boolean expiringSoon = lastAccessMinutes >= (30 - WARNING_THRESHOLD_MINUTES);
+        
+        if (expiringSoon) {
+            auditService.logSessionEvent("SESSION_EXPIRING_SOON", session.getId(), 
+                "Session will expire in " + (30 - lastAccessMinutes) + " minutes");
+        }
+        
+        return expiringSoon;
     }
 
     /**
-     * Gets the remaining session time in minutes.
-     * @return remaining time in minutes, or -1 if session is invalid
+     * Gets remaining session time in minutes.
+     * @return remaining minutes or 0 if session invalid
      */
     public long getRemainingSessionTimeMinutes() {
         HttpSession session = getCurrentSession();
         if (session == null) {
-            return -1;
+            return 0;
         }
 
         long lastAccessMinutes = ChronoUnit.MINUTES.between(
@@ -102,18 +153,6 @@ public class SessionManagementService {
         );
         
         return Math.max(0, 30 - lastAccessMinutes);
-    }
-
-    /**
-     * Refreshes the session by updating last access time.
-     * Should be called on authenticated requests to extend session validity.
-     */
-    public void refreshSession() {
-        HttpSession session = getCurrentSession();
-        if (session != null) {
-            // Touch the session to update last access time
-            session.setAttribute("lastRefresh", Instant.now());
-        }
     }
 
     /**
@@ -127,7 +166,8 @@ public class SessionManagementService {
                 return attributes.getRequest().getSession(false);
             }
         } catch (Exception e) {
-            // Log error if needed, but don't fail
+            auditService.logSessionEvent("SESSION_CONTEXT_ERROR", "UNKNOWN", 
+                "Error accessing session context: " + e.getMessage());
         }
         return null;
     }

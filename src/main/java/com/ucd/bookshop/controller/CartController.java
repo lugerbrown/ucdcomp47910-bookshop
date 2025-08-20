@@ -1,5 +1,6 @@
 package com.ucd.bookshop.controller;
 
+import com.ucd.bookshop.config.SecurityAuditService;
 import com.ucd.bookshop.model.Cart;
 import com.ucd.bookshop.model.CartItem;
 import com.ucd.bookshop.model.Book;
@@ -23,12 +24,16 @@ public class CartController {
     private CartItemRepository cartItemRepository;
     private BookRepository bookRepository;
     private CustomerRepository customerRepository;
+    private SecurityAuditService auditService;
 
-    public CartController(CartRepository cartRepository, CartItemRepository cartItemRepository, BookRepository bookRepository, CustomerRepository customerRepository) {
+    public CartController(CartRepository cartRepository, CartItemRepository cartItemRepository, 
+                         BookRepository bookRepository, CustomerRepository customerRepository,
+                         SecurityAuditService auditService) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.bookRepository = bookRepository;
         this.customerRepository = customerRepository;
+        this.auditService = auditService;
     }
 
     @GetMapping("/by-customer/{customerId}")
@@ -46,12 +51,21 @@ public class CartController {
     @PostMapping("/{cartId}/add-item")
     public CartItem addItemToCart(@PathVariable Long cartId, @Valid @RequestBody AddItemRequest request, @AuthenticationPrincipal UserDetails principal) {
         Cart cart = resolvedOwnedCart(cartId, principal);
-    Book book = bookRepository.findById(request.getBookId()).orElse(null);
+        Book book = bookRepository.findById(request.getBookId()).orElse(null);
         if (book == null) {
+            auditService.logValidationFailure("bookId", String.valueOf(request.getBookId()), 
+                    "Book not found", "/carts/" + cartId + "/add-item");
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found");
         }
-    CartItem item = new CartItem(cart, book, request.getQuantity());
-        return cartItemRepository.save(item);
+        
+        CartItem item = new CartItem(cart, book, request.getQuantity());
+        CartItem savedItem = cartItemRepository.save(item);
+        
+        // Log successful cart modification
+        auditService.logAdminOperation("ADD_CART_ITEM", "cart/" + cartId, 
+                "Added book " + book.getBookName() + " (quantity: " + request.getQuantity() + ") to cart");
+        
+        return savedItem;
     }
 
     @DeleteMapping("/{cartId}/remove-item/{itemId}")
@@ -59,13 +73,22 @@ public class CartController {
         Cart cart = resolvedOwnedCart(cartId, principal); // ensures cart ownership
         CartItem item = cartItemRepository.findById(itemId).orElse(null);
         if (item == null) {
+            auditService.logAuthorizationFailure("/carts/" + cartId + "/remove-item/" + itemId, "DELETE", "Cart item not found");
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
+        
         // Ensure the item actually belongs to the owned cart to prevent cross-cart deletion (IDOR)
         if (item.getCart() == null || !item.getCart().getId().equals(cart.getId())) {
+            auditService.logAuthorizationFailure("/carts/" + cartId + "/remove-item/" + itemId, "DELETE", 
+                    "IDOR attempt: User attempted to remove item from different cart");
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
+        
         cartItemRepository.deleteById(itemId);
+        
+        // Log successful cart item removal
+        auditService.logAdminOperation("REMOVE_CART_ITEM", "cart/" + cartId, 
+                "Removed item " + itemId + " from cart");
     }
 
     @GetMapping("/{cartId}/total-price")
@@ -75,21 +98,39 @@ public class CartController {
     }
 
     private void enforceCustomerOwnership(Long customerId, UserDetails principal) {
-        if (principal == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        if (principal == null) {
+            auditService.logAuthorizationFailure("/carts/by-customer/" + customerId, "GET", "No authentication principal");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        
         var customer = customerRepository.findByUsername(principal.getUsername());
         if (customer == null || !customer.getId().equals(customerId)) {
+            auditService.logAuthorizationFailure("/carts/by-customer/" + customerId, "GET", 
+                    "User " + principal.getUsername() + " attempted to access cart for customer " + customerId);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
     }
 
     private Cart resolvedOwnedCart(Long cartId, UserDetails principal) {
-        if (principal == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        if (principal == null) {
+            auditService.logAuthorizationFailure("/carts/" + cartId, "ACCESS", "No authentication principal");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        
         Cart cart = cartRepository.findById(cartId).orElse(null);
-        if (cart == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        if (cart == null) {
+            auditService.logAuthorizationFailure("/carts/" + cartId, "ACCESS", "Cart not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        
         var owner = cart.getCustomer();
         if (owner == null || !owner.getUsername().equals(principal.getUsername())) {
+            auditService.logAuthorizationFailure("/carts/" + cartId, "ACCESS", 
+                    "User " + principal.getUsername() + " attempted to access cart owned by " + 
+                    (owner != null ? owner.getUsername() : "unknown"));
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
+        
         return cart;
     }
 
