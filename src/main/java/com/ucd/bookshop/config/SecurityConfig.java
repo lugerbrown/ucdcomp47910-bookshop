@@ -79,6 +79,8 @@ public class SecurityConfig {
                                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                                         // Allow public pages
                                         .requestMatchers("/register", "/login", "/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                                        // Allow test QR endpoint for debugging
+                                        .requestMatchers("/test-qr").permitAll()
                                         // Public GET book catalogue (web + API)
                                             .requestMatchers(HttpMethod.GET, "/books", API_BOOKS_GLOB).permitAll()
                                         // Registration API endpoint
@@ -116,7 +118,7 @@ public class SecurityConfig {
 
                 // Standard security headers (CSP, Referrer-Policy, Permissions-Policy, X-Content-Type-Options)
                 http.headers(headers -> headers
-                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' http://localhost:* https://localhost:*; upgrade-insecure-requests"))
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://quickchart.io; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' http://localhost:* https://localhost:*; upgrade-insecure-requests"))
                         .referrerPolicy(rp -> rp.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
                         .httpStrictTransportSecurity(hsts -> { /* already conditionally added below for prod */ })
                         .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=()"))

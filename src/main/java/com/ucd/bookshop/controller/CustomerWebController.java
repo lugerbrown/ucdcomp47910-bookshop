@@ -53,7 +53,8 @@ public class CustomerWebController {
         if (form.isUsing2FA()) {
             twoFactorAuthService.enableTwoFactorAuth(c);
             customerRepository.save(c);
-            model.addAttribute("qr", twoFactorAuthService.generateQRUrl(c));
+            String qrUrl = twoFactorAuthService.generateQRUrl(c);
+            model.addAttribute("qr", qrUrl);
             model.addAttribute("username", c.getUsername());
             return "qrcode";
         }
@@ -61,6 +62,20 @@ public class CustomerWebController {
         customerRepository.save(c);
         model.addAttribute("success", true);
         return "register-success";
+    }
+
+    @GetMapping("/test-qr")
+    public String testQR(Model model) {
+        Customer testUser = new Customer();
+        testUser.setUsername("testuser");
+        testUser.setEmail("test@example.com");
+        twoFactorAuthService.enableTwoFactorAuth(testUser);
+        
+        String qrUrl = twoFactorAuthService.generateQRUrl(testUser);
+        
+        model.addAttribute("qr", qrUrl);
+        model.addAttribute("username", testUser.getUsername());
+        return "qrcode";
     }
 
     public static class CustomerForm {
@@ -82,4 +97,4 @@ public class CustomerWebController {
         public String getEmail(){return email;} public void setEmail(String e){this.email=e;}
         public boolean isUsing2FA(){return using2FA;} public void setUsing2FA(boolean using2FA){this.using2FA=using2FA;}
     }
-} 
+}

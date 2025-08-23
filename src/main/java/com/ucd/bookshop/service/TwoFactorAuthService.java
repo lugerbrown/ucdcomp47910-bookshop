@@ -4,6 +4,9 @@ import com.ucd.bookshop.model.User;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.stereotype.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 @Service
 public class TwoFactorAuthService {
     
@@ -14,16 +17,18 @@ public class TwoFactorAuthService {
     }
     
     public String generateQRUrl(User user) {
-        String secretKey = user.getSecret();
-        String username = user.getUsername();
+        String issuer = APP_NAME; // Shown in Authenticator
+        String label = user.getUsername();
         
-        return String.format(
-            "otpauth://totp/%s:%s?secret=%s&issuer=%s",
-            APP_NAME,
-            username,
-            secretKey,
-            APP_NAME
-        );
+        // Construct otpauth URI
+        String otpauth = "otpauth://totp/"
+                + URLEncoder.encode(issuer + ":" + label, StandardCharsets.UTF_8)
+                + "?secret=" + URLEncoder.encode(user.getSecret(), StandardCharsets.UTF_8)
+                + "&issuer=" + URLEncoder.encode(issuer, StandardCharsets.UTF_8);
+
+        // Use QuickChart instead of deprecated Google Charts
+        return "https://quickchart.io/qr?size=200&text=" +
+                URLEncoder.encode(otpauth, StandardCharsets.UTF_8);
     }
     
     public void enableTwoFactorAuth(User user) {
