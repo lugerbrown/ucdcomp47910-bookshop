@@ -34,15 +34,12 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         String verificationCode = ((CustomWebAuthenticationDetails) auth.getDetails())
                 .getVerificationCode();
 
-        // Load user details using UserDetailsService
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         
-        // Verify password
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             throw new BadCredentialsException("Invalid username or password");
         }
 
-        // Get user entity for 2FA check
         User user = userRepository.findByUsername(username);
         if (user == null) {
             throw new BadCredentialsException("Invalid username or password");

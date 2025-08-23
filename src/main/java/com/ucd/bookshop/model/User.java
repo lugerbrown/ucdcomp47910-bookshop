@@ -18,7 +18,7 @@ public class User implements Serializable {
 
     @NotBlank
     @Column(nullable = false)
-    private String password; // Should be stored hashed
+    private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

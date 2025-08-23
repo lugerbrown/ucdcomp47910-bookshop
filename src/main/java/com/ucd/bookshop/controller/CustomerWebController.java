@@ -49,7 +49,6 @@ public class CustomerWebController {
         c.setEmail(form.getEmail());
         c.setRole(User.Role.CUSTOMER);
         
-        // Handle 2FA setup if user chose to enable it
         if (form.isUsing2FA()) {
             twoFactorAuthService.enableTwoFactorAuth(c);
             customerRepository.save(c);
@@ -66,7 +65,7 @@ public class CustomerWebController {
 
     public static class CustomerForm {
         @NotBlank @Size(min=3,max=40) private String username;
-        @NotBlank @Size(min=12,max=128) private String password; // Strength enforced centrally
+        @NotBlank @Size(min=12,max=128) private String password;
         @NotBlank @Size(max=60) private String name;
         @NotBlank @Size(max=60) private String surname;
         @NotBlank @Size(max=120) private String address;

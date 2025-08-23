@@ -57,47 +57,35 @@ public class SecurityConfig {
                                               AuthenticationManager authenticationManager,
                                               CustomAuthenticationProvider authProvider) throws Exception {
                 http
-                        // Enable CORS with the defined configuration
                         .cors(cors -> cors.configurationSource(corsConfigurationSource))
                         .sessionManagement( sessionManagement ->
                                 sessionManagement
                                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                                        // Explicitly migrate session ID on authentication to prevent session fixation (Spring does this by default, made explicit for auditability)
                                         .sessionFixation(sf -> sf.migrateSession())
-                                        // CWE-613 mitigation: Set explicit session timeout and invalidation
-                                        .invalidSessionUrl("/login?invalid") // Redirect invalid sessions to login
-                                        .maximumSessions(1) // Prevent multiple concurrent sessions per user
-                                        .expiredUrl("/login?expired") // Redirect expired sessions to login
+                                        .invalidSessionUrl("/login?invalid")
+                                        .maximumSessions(1)
+                                        .expiredUrl("/login?expired")
                         )
                         .csrf(csrf -> csrf
-                                // Re-enable CSRF protection for CWE-693 mitigation
-                                .ignoringRequestMatchers("/api/**") // API endpoints can use stateless authentication if needed
-                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) // Allow JavaScript access to CSRF token
+                                .ignoringRequestMatchers("/api/**")
+                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         )
                         .authorizeHttpRequests(auth -> auth
-                                        // Allow static resources (CSS, JS, images)
                                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                                        // Allow public pages
                                         .requestMatchers("/register", "/login", "/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                                        // Public GET book catalogue (web + API)
                                             .requestMatchers(HttpMethod.GET, "/books", API_BOOKS_GLOB).permitAll()
-                                        // Registration API endpoint
                                         .requestMatchers(HttpMethod.POST, "/customers/register").permitAll()
-                                        // User settings and 2FA management - authenticated users only
                                         .requestMatchers("/user/settings", "/user/update/2fa").authenticated()
-                                        // Restrict admin areas & management pages
                                             .requestMatchers(ADMIN_PATH).hasRole(ROLE_ADMIN)
                                             .requestMatchers(AUTHORS_PATH).hasRole(ROLE_ADMIN)
                                             .requestMatchers(BOOKS_PATH).hasRole(ROLE_ADMIN)
                                             .requestMatchers(HttpMethod.POST, API_BOOKS_GLOB).hasRole(ROLE_ADMIN)
                                             .requestMatchers(HttpMethod.PUT, API_BOOKS_GLOB).hasRole(ROLE_ADMIN)
                                             .requestMatchers(HttpMethod.DELETE, API_BOOKS_GLOB).hasRole(ROLE_ADMIN)
-                                        // User & customer data
                                             .requestMatchers(USERS_PATH).hasRole(ROLE_ADMIN)
-                                            .requestMatchers(HttpMethod.GET, CUSTOMERS_PATH).authenticated() // Ownership checked in controller
+                                            .requestMatchers(HttpMethod.GET, CUSTOMERS_PATH).authenticated()
                                             .requestMatchers(HttpMethod.PUT, CUSTOMERS_PATH).hasRole(ROLE_ADMIN)
                                             .requestMatchers(HttpMethod.DELETE, CUSTOMERS_PATH).hasRole(ROLE_ADMIN)
-                                        // Cart APIs restricted to customers (with ownership checks in controllers)
                                             .requestMatchers(CARTS_PATH, CART_ITEMS_PATH).hasRole(ROLE_CUSTOMER)
                                         .anyRequest().authenticated()
                         )
@@ -114,25 +102,22 @@ public class SecurityConfig {
                                         .permitAll()
                         );
 
-                // Standard security headers (CSP, Referrer-Policy, Permissions-Policy, X-Content-Type-Options)
                 http.headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://quickchart.io; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' http://localhost:* https://localhost:*; upgrade-insecure-requests"))
                         .referrerPolicy(rp -> rp.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
-                        .httpStrictTransportSecurity(hsts -> { /* already conditionally added below for prod */ })
+                        .httpStrictTransportSecurity(hsts -> { })
                         .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=()"))
-                        .xssProtection(x -> x.disable()) // modern browsers rely on CSP; avoid legacy heuristic
+                        .xssProtection(x -> x.disable())
                         .frameOptions(fo -> fo.deny())
                         .cacheControl(cc -> {})
                         .contentTypeOptions(cto -> {})
                 );
 
-                // Enforce HTTPS and add HSTS only when 'prod' profile is active
                 boolean prod = false;
                 for (String profile : environment.getActiveProfiles()) {
                         if ("prod".equalsIgnoreCase(profile)) { prod = true; break; }
                 }
                 if (prod) {
-                    // Add simple redirect filter to enforce HTTPS without deprecated API usage
                     http.addFilterBefore(new HttpsEnforcementFilter(), org.springframework.security.web.authentication.AnonymousAuthenticationFilter.class);
                     http.headers(headers -> headers.httpStrictTransportSecurity(hsts -> hsts
                             .includeSubDomains(true)
@@ -140,17 +125,11 @@ public class SecurityConfig {
                             .maxAgeInSeconds(31536000)));
                 }
 
-                // Add login rate limiting filter prior to authentication processing
                 http.addFilterBefore(loginRateLimitingFilter, UsernamePasswordAuthenticationFilter.class);
                 
-                // Configure custom authentication provider for 2FA
                 http.authenticationProvider(authProvider);
                 
-                // Configure authentication manager
                 http.authenticationManager(authenticationManager);
-                
-                // Add session validation filter for CWE-613 mitigation
-                // Note: SessionValidationFilter will be autowired by Spring
 
                 return http.build();
         }

@@ -70,9 +70,7 @@
     <div th:replace="fragments/footer :: footer"></div>
 </div>
 
-<!-- JavaScript for 2FA Toggle -->
 <script th:inline="javascript">
-    // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', function() {
         const checkbox = document.getElementById('enable2FA');
         

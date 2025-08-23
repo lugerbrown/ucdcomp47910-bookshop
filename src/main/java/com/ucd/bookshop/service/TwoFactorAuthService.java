@@ -17,16 +17,14 @@ public class TwoFactorAuthService {
     }
     
     public String generateQRUrl(User user) {
-        String issuer = APP_NAME; // Shown in Authenticator
+        String issuer = APP_NAME;
         String label = user.getUsername();
         
-        // Construct otpauth URI
         String otpauth = "otpauth://totp/"
                 + URLEncoder.encode(issuer + ":" + label, StandardCharsets.UTF_8)
                 + "?secret=" + URLEncoder.encode(user.getSecret(), StandardCharsets.UTF_8)
                 + "&issuer=" + URLEncoder.encode(issuer, StandardCharsets.UTF_8);
 
-        // Use QuickChart instead of deprecated Google Charts
         return "https://quickchart.io/qr?size=200&text=" +
                 URLEncoder.encode(otpauth, StandardCharsets.UTF_8);
     }
