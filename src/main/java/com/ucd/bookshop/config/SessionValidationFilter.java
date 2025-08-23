@@ -78,7 +78,6 @@ public class SessionValidationFilter extends OncePerRequestFilter {
         return path.equals("/") ||
                path.equals("/login") ||
                path.equals("/register") ||
-               path.equals("/test-qr") ||
                path.equals("/css") ||
                path.startsWith("/css/") ||
                path.startsWith("/js/") ||

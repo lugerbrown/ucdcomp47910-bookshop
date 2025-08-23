@@ -64,20 +64,6 @@ public class CustomerWebController {
         return "register-success";
     }
 
-    @GetMapping("/test-qr")
-    public String testQR(Model model) {
-        Customer testUser = new Customer();
-        testUser.setUsername("testuser");
-        testUser.setEmail("test@example.com");
-        twoFactorAuthService.enableTwoFactorAuth(testUser);
-        
-        String qrUrl = twoFactorAuthService.generateQRUrl(testUser);
-        
-        model.addAttribute("qr", qrUrl);
-        model.addAttribute("username", testUser.getUsername());
-        return "qrcode";
-    }
-
     public static class CustomerForm {
         @NotBlank @Size(min=3,max=40) private String username;
         @NotBlank @Size(min=12,max=128) private String password; // Strength enforced centrally

@@ -79,8 +79,6 @@ public class SecurityConfig {
                                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                                         // Allow public pages
                                         .requestMatchers("/register", "/login", "/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                                        // Allow test QR endpoint for debugging
-                                        .requestMatchers("/test-qr").permitAll()
                                         // Public GET book catalogue (web + API)
                                             .requestMatchers(HttpMethod.GET, "/books", API_BOOKS_GLOB).permitAll()
                                         // Registration API endpoint
