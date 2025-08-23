@@ -55,6 +55,7 @@ public class LoginController {
             }
             
             UserDto user = userService.updateUser2FA(use2FA);
+            
             if (use2FA) {
                 String qrUrl = userService.generateQRUrl(user);
                 return Map.of(MESSAGE_KEY, qrUrl != null ? qrUrl : "Failed to generate QR code");

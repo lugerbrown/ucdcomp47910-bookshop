@@ -31,7 +31,7 @@
                                 
                                 <div class="form-check form-switch mb-3">
                                     <input class="form-check-input" type="checkbox" id="enable2FA" 
-                                           th:checked="${using2FA}" onchange="toggle2FA(this.checked)">
+                                           th:checked="${using2FA}">
                                     <label class="form-check-label" for="enable2FA">
                                         <span th:if="${using2FA}">
                                             <i class="bi bi-check-circle text-success"></i> Two-Factor Authentication is <strong>enabled</strong>
@@ -42,18 +42,18 @@
                                     </label>
                                 </div>
                                 
-                                <div id="qrCodeSection" class="d-none">
-                                    <div class="alert alert-info">
-                                        <h6><i class="bi bi-info-circle"></i> Scan QR Code</h6>
-                                        <p class="mb-2">Please scan the QR code below with your authenticator app:</p>
-                                        <div id="qrcode" class="text-center mb-3"></div>
-                                        <small class="text-muted">
-                                            Scan this QR code with Google Authenticator, Authy, or any compatible authenticator app.
-                                        </small>
-                                    </div>
-                                </div>
-                                
-                                <div id="statusMessage" class="alert d-none"></div>
+                <div id="qrCodeSection" class="d-none">
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> Scan QR Code</h6>
+                        <p class="mb-2">Please scan the QR code below with your authenticator app:</p>
+                        <div id="qrcode" class="text-center mb-3">
+                            <img id="qrImage" src="" alt="QR Code" class="img-fluid" style="max-width: 200px; height: auto; border: 1px solid #ddd; border-radius: 4px;" />
+                        </div>
+                        <small class="text-muted">
+                            Scan this QR code with Google Authenticator, Authy, or any compatible authenticator app.
+                        </small>
+                    </div>
+                </div>                                <div id="statusMessage" class="alert d-none"></div>
                             </div>
                             
                             <div class="mt-4">
@@ -70,9 +70,19 @@
     <div th:replace="fragments/footer :: footer"></div>
 </div>
 
-<!-- QR Code Generation Script -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<!-- JavaScript for 2FA Toggle -->
 <script th:inline="javascript">
+    // Wait for DOM to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkbox = document.getElementById('enable2FA');
+        
+        if (checkbox) {
+            checkbox.addEventListener('change', function(event) {
+                toggle2FA(this.checked);
+            });
+        }
+    });
+
     function toggle2FA(enabled) {
         const statusDiv = document.getElementById('statusMessage');
         const qrSection = document.getElementById('qrCodeSection');
@@ -82,14 +92,23 @@
         statusDiv.textContent = enabled ? 'Enabling 2FA...' : 'Disabling 2FA...';
         statusDiv.classList.remove('d-none');
         
+        // Get CSRF token using Thymeleaf inline JavaScript
+        const token = /*[[${_csrf.token}]]*/ 'default-token';
+        const header = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
+        
+        // Prepare request details
+        const requestBody = 'use2FA=' + enabled;
+        const requestHeaders = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+            [header]: token
+        };
+        
         // Make AJAX request
         fetch('/user/update/2fa', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: 'use2FA=' + enabled
+            headers: requestHeaders,
+            body: requestBody
         })
         .then(response => response.json())
         .then(data => {
@@ -111,29 +130,17 @@
                 return;
             }
             
-            if (enabled && data.message && data.message.startsWith('otpauth://')) {
+            if (enabled && data.message && data.message.startsWith('https://quickchart.io/qr')) {
                 // Show QR code for enabling 2FA
                 statusDiv.className = 'alert alert-success';
                 statusDiv.textContent = '2FA enabled successfully! Please scan the QR code below.';
                 
-                // Generate and show QR code
-                const qrContainer = document.getElementById('qrcode');
-                qrContainer.innerHTML = ''; // Clear previous QR code
-                
-                QRCode.toCanvas(qrContainer, data.message, {
-                    width: 200,
-                    height: 200,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#FFFFFF'
-                    }
-                }, function (error) {
-                    if (error) {
-                        console.error('QR Code generation failed:', error);
-                        qrContainer.innerHTML = '<p class="text-danger">Failed to generate QR code</p>';
-                    }
-                });
+                // Set the QR code image source directly to the QuickChart URL
+                const qrImage = document.getElementById('qrImage');
+                qrImage.src = data.message;
+                qrImage.onerror = function() {
+                    document.getElementById('qrcode').innerHTML = '<p class="text-danger">Failed to load QR code</p>';
+                };
                 
                 qrSection.classList.remove('d-none');
             } else if (!enabled) {
@@ -158,7 +165,6 @@
             }
         })
         .catch(error => {
-            console.error('Error:', error);
             statusDiv.className = 'alert alert-danger';
             statusDiv.textContent = 'An error occurred while updating 2FA settings.';
             statusDiv.classList.remove('d-none');
