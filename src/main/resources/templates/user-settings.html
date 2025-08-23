@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head('User Settings - BookShop')">
+    <title>User Settings - BookShop</title>
+</head>
+<body class="bg-light">
+<div class="wrapper">
+    <div class="content">
+        <div th:replace="fragments/navbar :: navbar"></div>
+        <div class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h2 class="card-title mb-4">
+                                <i class="bi bi-gear"></i> User Settings
+                            </h2>
+                            
+                            <div class="mb-4">
+                                <h5>Account Information</h5>
+                                <p><strong>Username:</strong> <span th:text="${user.username}">username</span></p>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="mb-4">
+                                <h5>
+                                    <i class="bi bi-shield-lock"></i> Two-Factor Authentication
+                                </h5>
+                                <p class="text-muted">Add an extra layer of security to your account using an authenticator app.</p>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="enable2FA" 
+                                           th:checked="${using2FA}" onchange="toggle2FA(this.checked)">
+                                    <label class="form-check-label" for="enable2FA">
+                                        <span th:if="${using2FA}">
+                                            <i class="bi bi-check-circle text-success"></i> Two-Factor Authentication is <strong>enabled</strong>
+                                        </span>
+                                        <span th:unless="${using2FA}">
+                                            <i class="bi bi-x-circle text-danger"></i> Two-Factor Authentication is <strong>disabled</strong>
+                                        </span>
+                                    </label>
+                                </div>
+                                
+                                <div id="qrCodeSection" class="d-none">
+                                    <div class="alert alert-info">
+                                        <h6><i class="bi bi-info-circle"></i> Scan QR Code</h6>
+                                        <p class="mb-2">Please scan the QR code below with your authenticator app:</p>
+                                        <div id="qrcode" class="text-center mb-3"></div>
+                                        <small class="text-muted">
+                                            Scan this QR code with Google Authenticator, Authy, or any compatible authenticator app.
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <div id="statusMessage" class="alert d-none"></div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <a th:href="@{/}" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Back to Home
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:replace="fragments/footer :: footer"></div>
+</div>
+
+<!-- QR Code Generation Script -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script th:inline="javascript">
+    function toggle2FA(enabled) {
+        const statusDiv = document.getElementById('statusMessage');
+        const qrSection = document.getElementById('qrCodeSection');
+        
+        // Show loading
+        statusDiv.className = 'alert alert-info';
+        statusDiv.textContent = enabled ? 'Enabling 2FA...' : 'Disabling 2FA...';
+        statusDiv.classList.remove('d-none');
+        
+        // Make AJAX request
+        fetch('/user/update/2fa', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'use2FA=' + enabled
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                // Handle authentication or other errors
+                statusDiv.className = 'alert alert-danger';
+                statusDiv.textContent = data.error;
+                
+                // If authentication error, redirect to login
+                if (data.error.includes('not authenticated') || data.error.includes('Authentication required')) {
+                    setTimeout(() => {
+                        window.location.href = '/login?error=sessionExpired';
+                    }, 2000);
+                    return;
+                }
+                
+                // Reset checkbox for other errors
+                document.getElementById('enable2FA').checked = !enabled;
+                return;
+            }
+            
+            if (enabled && data.message && data.message.startsWith('otpauth://')) {
+                // Show QR code for enabling 2FA
+                statusDiv.className = 'alert alert-success';
+                statusDiv.textContent = '2FA enabled successfully! Please scan the QR code below.';
+                
+                // Generate and show QR code
+                const qrContainer = document.getElementById('qrcode');
+                qrContainer.innerHTML = ''; // Clear previous QR code
+                
+                QRCode.toCanvas(qrContainer, data.message, {
+                    width: 200,
+                    height: 200,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }, function (error) {
+                    if (error) {
+                        console.error('QR Code generation failed:', error);
+                        qrContainer.innerHTML = '<p class="text-danger">Failed to generate QR code</p>';
+                    }
+                });
+                
+                qrSection.classList.remove('d-none');
+            } else if (!enabled) {
+                // 2FA disabled
+                statusDiv.className = 'alert alert-warning';
+                statusDiv.textContent = data.message || '2FA disabled successfully.';
+                qrSection.classList.add('d-none');
+            } else {
+                // Error case
+                statusDiv.className = 'alert alert-danger';
+                statusDiv.textContent = 'Failed to update 2FA settings.';
+                // Reset checkbox
+                document.getElementById('enable2FA').checked = !enabled;
+            }
+            
+            // Update the label text
+            const label = document.querySelector('label[for="enable2FA"]');
+            if (enabled) {
+                label.innerHTML = '<i class="bi bi-check-circle text-success"></i> Two-Factor Authentication is <strong>enabled</strong>';
+            } else {
+                label.innerHTML = '<i class="bi bi-x-circle text-danger"></i> Two-Factor Authentication is <strong>disabled</strong>';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            statusDiv.className = 'alert alert-danger';
+            statusDiv.textContent = 'An error occurred while updating 2FA settings.';
+            statusDiv.classList.remove('d-none');
+            // Reset checkbox
+            document.getElementById('enable2FA').checked = !enabled;
+        });
+    }
+</script>
+</body>
+</html>

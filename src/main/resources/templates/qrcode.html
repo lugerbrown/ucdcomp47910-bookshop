@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head('2FA Setup - BookShop')">
+    <title>2FA Setup - BookShop</title>
+</head>
+<body class="bg-light">
+<div class="wrapper">
+    <div class="content">
+        <div th:replace="fragments/navbar :: navbar"></div>
+        <div class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card shadow">
+                        <div class="card-body text-center">
+                            <h2 class="card-title mb-4">
+                                <i class="bi bi-shield-check text-success"></i>
+                                Two-Factor Authentication Setup
+                            </h2>
+                            <p class="lead mb-4">Congratulations <strong th:text="${username}">User</strong>! Your account has been created successfully.</p>
+                            
+                            <div class="alert alert-info" role="alert">
+                                <h5><i class="bi bi-info-circle"></i> Setup Your Authenticator App</h5>
+                                <p class="mb-0">Please scan the QR code below with your authenticator app (such as Google Authenticator, Authy, or Microsoft Authenticator) to complete your 2FA setup.</p>
+                            </div>
+
+                            <div class="my-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">QR Code</h6>
+                                        <div id="qrcode" class="mb-3"></div>
+                                        <small class="text-muted">
+                                            Scan this QR code with your authenticator app
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning" role="alert">
+                                <h6><i class="bi bi-exclamation-triangle"></i> Important:</h6>
+                                <ul class="mb-0 text-start">
+                                    <li>Save your authenticator app backup codes in a safe place</li>
+                                    <li>You'll need the 6-digit code from your app to log in</li>
+                                    <li>Make sure your device's time is synchronized</li>
+                                </ul>
+                            </div>
+
+                            <div class="mt-4">
+                                <a th:href="@{/login}" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-box-arrow-in-right"></i> Continue to Login
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:replace="fragments/footer :: footer"></div>
+</div>
+
+<!-- QR Code Generation Script -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const qrData = /*[[${qr}]]*/ '';
+        const qrContainer = document.getElementById('qrcode');
+        
+        if (qrData) {
+            QRCode.toCanvas(qrContainer, qrData, {
+                width: 200,
+                height: 200,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error) {
+                if (error) {
+                    console.error('QR Code generation failed:', error);
+                    qrContainer.innerHTML = '<p class="text-danger">Failed to generate QR code</p>';
+                }
+            });
+        } else {
+            qrContainer.innerHTML = '<p class="text-danger">No QR code data available</p>';
+        }
+    });
+</script>
+</body>
+</html>

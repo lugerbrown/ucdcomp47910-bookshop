@@ -1,5 +1,7 @@
 package com.ucd.bookshop.config;
 
+import com.ucd.bookshop.authentication.CustomAuthenticationProvider;
+import com.ucd.bookshop.authentication.CustomWebAuthenticationDetailsSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -22,12 +24,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
                 private final Environment environment;
+                private final CustomWebAuthenticationDetailsSource customWebAuthenticationDetailsSource;
 
                 private static final String ROLE_ADMIN = "ADMIN";
                 private static final String ROLE_CUSTOMER = "CUSTOMER";
@@ -40,11 +45,17 @@ public class SecurityConfig {
                 private static final String CARTS_PATH = "/carts/**";
                 private static final String CART_ITEMS_PATH = "/cart-items/**";
 
-        public SecurityConfig(Environment environment) {
+        public SecurityConfig(Environment environment, 
+                             CustomWebAuthenticationDetailsSource customWebAuthenticationDetailsSource) {
                 this.environment = environment;
+                this.customWebAuthenticationDetailsSource = customWebAuthenticationDetailsSource;
         }
     @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationHandlers authenticationHandlers, LoginRateLimitingFilter loginRateLimitingFilter, CorsConfigurationSource corsConfigurationSource) throws Exception {
+        public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationHandlers authenticationHandlers, 
+                                              LoginRateLimitingFilter loginRateLimitingFilter, 
+                                              CorsConfigurationSource corsConfigurationSource,
+                                              AuthenticationManager authenticationManager,
+                                              CustomAuthenticationProvider authProvider) throws Exception {
                 http
                         // Enable CORS with the defined configuration
                         .cors(cors -> cors.configurationSource(corsConfigurationSource))
@@ -72,6 +83,8 @@ public class SecurityConfig {
                                             .requestMatchers(HttpMethod.GET, "/books", API_BOOKS_GLOB).permitAll()
                                         // Registration API endpoint
                                         .requestMatchers(HttpMethod.POST, "/customers/register").permitAll()
+                                        // User settings and 2FA management - authenticated users only
+                                        .requestMatchers("/user/settings", "/user/update/2fa").authenticated()
                                         // Restrict admin areas & management pages
                                             .requestMatchers(ADMIN_PATH).hasRole(ROLE_ADMIN)
                                             .requestMatchers(AUTHORS_PATH).hasRole(ROLE_ADMIN)
@@ -90,6 +103,7 @@ public class SecurityConfig {
                         )
                         .formLogin(form -> form
                                         .loginPage("/login")
+                                        .authenticationDetailsSource(customWebAuthenticationDetailsSource)
                                         .successHandler(authenticationHandlers)
                                         .failureHandler(authenticationHandlers)
                                         .permitAll()
@@ -129,6 +143,12 @@ public class SecurityConfig {
                 // Add login rate limiting filter prior to authentication processing
                 http.addFilterBefore(loginRateLimitingFilter, UsernamePasswordAuthenticationFilter.class);
                 
+                // Configure custom authentication provider for 2FA
+                http.authenticationProvider(authProvider);
+                
+                // Configure authentication manager
+                http.authenticationManager(authenticationManager);
+                
                 // Add session validation filter for CWE-613 mitigation
                 // Note: SessionValidationFilter will be autowired by Spring
 
@@ -138,6 +158,14 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http,
+                                                       CustomAuthenticationProvider authProvider) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+                .authenticationProvider(authProvider)
+                .build();
     }
 }
 

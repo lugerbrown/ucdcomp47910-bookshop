@@ -24,6 +24,12 @@ public class User implements Serializable {
     @Column(nullable = false)
     private Role role;
 
+    @Column(nullable = false)
+    private boolean isUsing2FA = false;
+
+    @Column(length = 32)
+    private String secret;
+
     public enum Role {
         ADMIN, CUSTOMER
     }
@@ -34,6 +40,8 @@ public class User implements Serializable {
         this.username = username;
         this.password = password;
         this.role = role;
+        this.isUsing2FA = false;
+        this.secret = null;
     }
 
     public Long getId() { return id; }
@@ -44,6 +52,10 @@ public class User implements Serializable {
     public void setPassword(String password) { this.password = password; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+    public boolean isUsing2FA() { return isUsing2FA; }
+    public void setUsing2FA(boolean using2FA) { isUsing2FA = using2FA; }
+    public String getSecret() { return secret; }
+    public void setSecret(String secret) { this.secret = secret; }
 
     @Override
     public String toString() {
