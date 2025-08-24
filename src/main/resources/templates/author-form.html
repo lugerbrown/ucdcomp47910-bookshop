@@ -19,7 +19,7 @@
                         </div>
 
                         <!-- Display associated books if editing -->
-                        <div th:if="${author.id} != null and ${author.books} != null and !${author.books.isEmpty()}" class="mb-3">
+                                                <div th:if="${author.id}" class="mb-3">
                             <label class="form-label">Associated Books:</label>
                             <div class="alert alert-info">
                                 <small>This author is associated with the following books:</small>

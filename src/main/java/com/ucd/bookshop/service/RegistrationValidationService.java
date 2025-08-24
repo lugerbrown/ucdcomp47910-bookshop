@@ -6,9 +6,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.regex.Pattern;
 
-/**
- * Central registration validation (password strength + username uniqueness) to avoid relying on a single layer.
- */
 @Service
 public class RegistrationValidationService {
 

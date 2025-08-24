@@ -1,9 +1,8 @@
-<!DOCTYPE ht                            <h2 class="card-title text-center mb-4">Customer Registration</h2>
-                            <form th:action="@{/register}" th:object="${customerForm}" method="post">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                <div class="mb-3":
+<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/head :: head('Register - BookShop')"></head>
+<head th:replace="fragments/head :: head('Register - BookShop')">
+    <title>Register - BookShop</title>
+</head>
 <body class="bg-light">
 <div class="wrapper">
     <div class="content">
@@ -15,33 +14,58 @@
                         <div class="card-body">
                             <h2 class="card-title text-center mb-4">Customer Registration</h2>
                             <form th:action="@{/register}" th:object="${customerForm}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <div class="mb-3">
-                                    <label class="form-label">Username:</label>
-                                    <input type="text" th:field="*{username}" class="form-control" required>
+                                    <label for="username" class="form-label">Username:</label>
+                                    <input type="text" id="username" th:field="*{username}" class="form-control" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Password:</label>
-                                    <input type="password" th:field="*{password}" class="form-control" required>
+                                    <label for="password" class="form-label">Password:</label>
+                                    <input type="password" id="password" th:field="*{password}" 
+                                           class="form-control" 
+                                           minlength="12" 
+                                           maxlength="128" 
+                                           required
+                                           oninput="validatePassword(this)">
+                                    <div class="invalid-feedback" id="password-feedback">
+                                        Password must be between 12 and 128 characters long.
+                                    </div>
+                                    <div class="valid-feedback">
+                                        Password length is valid.
+                                    </div>
+                                    <div class="form-text">
+                                        <small class="text-muted">
+                                            <i class="bi bi-info-circle"></i> 
+                                            Password must be between 12 and 128 characters long for security.
+                                        </small>
+                                    </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Name:</label>
-                                    <input type="text" th:field="*{name}" class="form-control" required>
+                                    <label for="name" class="form-label">Name:</label>
+                                    <input type="text" id="name" th:field="*{name}" class="form-control" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Surname:</label>
-                                    <input type="text" th:field="*{surname}" class="form-control" required>
+                                    <label for="surname" class="form-label">Surname:</label>
+                                    <input type="text" id="surname" th:field="*{surname}" class="form-control" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Address:</label>
-                                    <input type="text" th:field="*{address}" class="form-control" required>
+                                    <label for="address" class="form-label">Address:</label>
+                                    <input type="text" id="address" th:field="*{address}" class="form-control" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Phone Number:</label>
-                                    <input type="text" th:field="*{phoneNumber}" class="form-control" required>
+                                    <label for="phoneNumber" class="form-label">Phone Number:</label>
+                                    <input type="text" id="phoneNumber" th:field="*{phoneNumber}" class="form-control" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Email:</label>
-                                    <input type="email" th:field="*{email}" class="form-control" required>
+                                    <label for="email" class="form-label">Email:</label>
+                                    <input type="email" id="email" th:field="*{email}" class="form-control" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>
+                                        <input type="checkbox" th:field="*{using2FA}" value="true"/>
+                                        Using Two-factor Authentication
+                                    </label>
+                                    <small class="form-text text-muted d-block">Enable this option to add an extra layer of security to your account using an authenticator app</small>
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100">
                                     <i class="bi bi-person-plus"></i> Register
@@ -60,5 +84,90 @@
     </div>
     <div th:replace="fragments/footer :: footer"></div>
 </div>
+
+<script>
+    function validatePassword(input) {
+        const password = input.value;
+        const length = password.length;
+        const feedback = document.getElementById('password-feedback');
+        
+        // Remove previous validation classes
+        input.classList.remove('is-valid', 'is-invalid');
+        
+        if (length === 0) {
+            // No validation styling when empty
+            return;
+        } else if (length < 12) {
+            input.classList.add('is-invalid');
+            feedback.textContent = `Password is too short. ${length}/12 characters minimum.`;
+        } else if (length > 128) {
+            input.classList.add('is-invalid');
+            feedback.textContent = `Password is too long. ${length}/128 characters maximum.`;
+        } else {
+            input.classList.add('is-valid');
+            feedback.textContent = `Password length is valid (${length} characters).`;
+        }
+    }
+    
+    // Form submission validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const passwordInput = document.getElementById('password');
+        
+        form.addEventListener('submit', function(event) {
+            const password = passwordInput.value;
+            
+            if (password.length < 12 || password.length > 128) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                passwordInput.classList.add('is-invalid');
+                
+                // Show alert
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger mt-3';
+                alertDiv.innerHTML = '<strong>Validation Error:</strong> Password must be between 12 and 128 characters long.';
+                
+                // Remove existing alerts
+                const existingAlerts = form.querySelectorAll('.alert-danger');
+                existingAlerts.forEach(alert => alert.remove());
+                
+                // Add new alert after form
+                form.appendChild(alertDiv);
+                
+                // Scroll to password field
+                passwordInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                passwordInput.focus();
+            }
+        });
+        
+        // Real-time character counter
+        const charCounter = document.createElement('div');
+        charCounter.className = 'form-text text-end';
+        charCounter.id = 'char-counter';
+        charCounter.innerHTML = '<small class="text-muted">0/128 characters</small>';
+        
+        const passwordContainer = passwordInput.parentElement;
+        passwordContainer.appendChild(charCounter);
+        
+        passwordInput.addEventListener('input', function() {
+            const length = this.value.length;
+            const counter = document.getElementById('char-counter');
+            
+            let colorClass;
+            if (length < 12) {
+                colorClass = 'text-danger';
+            } else if (length >= 12 && length <= 128) {
+                colorClass = 'text-success';
+            } else if (length > 128) {
+                colorClass = 'text-danger';
+            } else {
+                colorClass = 'text-muted';
+            }
+            
+            counter.innerHTML = `<small class="${colorClass}">${length}/128 characters</small>`;
+        });
+    });
+</script>
 </body>
 </html>

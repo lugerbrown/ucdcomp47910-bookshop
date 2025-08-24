@@ -37,15 +37,22 @@ public class UserController {
         private Long id;
         private String username;
         private String role;
+        private boolean isUsing2FA;
+        private String secret;
+        
         public static UserDto from(User u) {
             UserDto dto = new UserDto();
             dto.id = u.getId();
             dto.username = u.getUsername();
             dto.role = u.getRole().name();
+            dto.isUsing2FA = u.isUsing2FA();
+            dto.secret = u.getSecret();
             return dto;
         }
         public Long getId() { return id; }
         public String getUsername() { return username; }
         public String getRole() { return role; }
+        public boolean isUsing2FA() { return isUsing2FA; }
+        public String getSecret() { return secret; }
     }
 } 

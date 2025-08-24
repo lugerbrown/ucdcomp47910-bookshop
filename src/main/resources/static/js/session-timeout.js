@@ -1,24 +1,10 @@
-/**
- * Session timeout warning and management for CWE-613 mitigation.
- * Provides user notifications about session expiration and automatic logout handling.
- */
-
 (function() {
     'use strict';
     
     let sessionWarningShown = false;
     let sessionExpiringSoon = false;
     
-    // Check for session expiration headers on each request
-    function checkSessionHeaders() {
-        // This would typically be done via AJAX or by checking response headers
-        // For now, we'll use a polling approach to check session status
-        checkSessionStatus();
-    }
-    
-    // Check session status via AJAX
     function checkSessionStatus() {
-        // Only check if user is authenticated
         if (!document.body.classList.contains('authenticated')) {
             return;
         }
@@ -40,12 +26,10 @@
             }
         })
         .catch(error => {
-            // If session check fails, assume session is invalid
             console.warn('Session status check failed:', error);
         });
     }
     
-    // Show session expiration warning
     function showSessionWarning(remainingMinutes) {
         if (sessionWarningShown) {
             return;
@@ -53,7 +37,6 @@
         
         sessionWarningShown = true;
         
-        // Create warning modal
         const modal = document.createElement('div');
         modal.className = 'modal fade';
         modal.id = 'sessionWarningModal';
@@ -80,11 +63,9 @@
         
         document.body.appendChild(modal);
         
-        // Show modal
         const bootstrapModal = new bootstrap.Modal(modal);
         bootstrapModal.show();
         
-        // Auto-hide after 10 seconds
         setTimeout(() => {
             if (modal.parentNode) {
                 bootstrapModal.hide();
@@ -93,7 +74,6 @@
         }, 10000);
     }
     
-    // Extend session by making a request
     function extendSession() {
         fetch('/api/session/extend', {
             method: 'POST',
@@ -107,7 +87,6 @@
                 sessionExpiringSoon = false;
                 sessionWarningShown = false;
                 
-                // Hide modal
                 const modal = document.getElementById('sessionWarningModal');
                 if (modal) {
                     const bootstrapModal = bootstrap.Modal.getInstance(modal);
@@ -117,7 +96,6 @@
                     modal.remove();
                 }
                 
-                // Show success message
                 showToast('Session extended successfully!', 'success');
             }
         })
@@ -127,7 +105,6 @@
         });
     }
     
-    // Show toast notification
     function showToast(message, type = 'info') {
         const toastContainer = document.getElementById('toastContainer') || createToastContainer();
         
@@ -145,13 +122,11 @@
         const bootstrapToast = new bootstrap.Toast(toast);
         bootstrapToast.show();
         
-        // Auto-remove after toast is hidden
         toast.addEventListener('hidden.bs.toast', () => {
             toast.remove();
         });
     }
     
-    // Create toast container if it doesn't exist
     function createToastContainer() {
         const container = document.createElement('div');
         container.id = 'toastContainer';
@@ -161,16 +136,12 @@
         return container;
     }
     
-    // Check session status periodically
     function startSessionMonitoring() {
-        // Check every 2 minutes
         setInterval(checkSessionStatus, 120000);
         
-        // Also check on user activity
         ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
             document.addEventListener(event, () => {
                 if (sessionExpiringSoon) {
-                    // Reset warning if user is active
                     sessionExpiringSoon = false;
                     sessionWarningShown = false;
                 }
@@ -178,14 +149,12 @@
         });
     }
     
-    // Initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', startSessionMonitoring);
     } else {
         startSessionMonitoring();
     }
     
-    // Make functions globally available
     window.extendSession = extendSession;
     
 })();

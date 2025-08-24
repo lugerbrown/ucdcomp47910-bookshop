@@ -37,7 +37,6 @@ public class Customer extends User {
         this.phoneNumber = phoneNumber;
         this.email = email;
     }
-    // Getters and setters for all fields
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getSurname() { return surname; }

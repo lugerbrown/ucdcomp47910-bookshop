@@ -1,14 +1,10 @@
-// Active Navigation Highlighting Script
 document.addEventListener('DOMContentLoaded', function() {
-    // Get current path
     const currentPath = window.location.pathname;
 
-    // Remove any existing active classes
     document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
         link.classList.remove('active');
     });
 
-    // Define path mappings for navigation items
     const navMappings = [
         { paths: ['/'], selector: 'a[href="/"]' },
         { paths: ['/books', '/books/add', '/books/edit'], selector: 'a[href="/books"]' },
@@ -18,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
         { paths: ['/register', '/register-success'], selector: 'a[href="/register"]' }
     ];
 
-    // Find and activate the appropriate navigation item
     navMappings.forEach(mapping => {
         const isCurrentPath = mapping.paths.some(path => {
             if (path === '/') {

@@ -11,12 +11,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * Filter that validates session validity on each request to mitigate CWE-613.
- * Automatically invalidates expired sessions and redirects users appropriately.
- */
 @Component
-@Order(2) // Run after LoginRateLimitingFilter but before authentication
+@Order(2)
 public class SessionValidationFilter extends OncePerRequestFilter {
 
     private final SessionManagementService sessionManagementService;
@@ -40,41 +36,32 @@ public class SessionValidationFilter extends OncePerRequestFilter {
                                   @Nonnull HttpServletResponse response, 
                                   @Nonnull FilterChain filterChain) throws ServletException, IOException {
         
-        // Skip session validation for public endpoints
         if (isPublicEndpoint(request)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Validate session for authenticated endpoints
         if (!sessionManagementService.isSessionValid()) {
-            // Session is invalid or expired, redirect to login
             addCorsHeaders(request, response);
             response.sendRedirect("/login?expired");
             return;
         }
 
-        // Check if session is expiring soon and add warning header
         if (sessionManagementService.isSessionExpiringSoon()) {
             response.setHeader("X-Session-Expiring", "true");
             response.setHeader("X-Session-Remaining-Minutes", 
                 String.valueOf(sessionManagementService.getRemainingSessionTimeMinutes()));
         }
 
-        // Refresh session on valid requests
         sessionManagementService.refreshSession();
 
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Determines if the request is for a public endpoint that doesn't require session validation.
-     */
     private boolean isPublicEndpoint(HttpServletRequest request) {
         String path = request.getRequestURI();
         String method = request.getMethod();
         
-        // Public endpoints that don't require session validation
         return path.equals("/") ||
                path.equals("/login") ||
                path.equals("/register") ||
@@ -90,7 +77,6 @@ public class SessionValidationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(@Nonnull HttpServletRequest request) throws ServletException {
-        // Skip filtering for static resources and public endpoints
         String path = request.getRequestURI();
         return path.startsWith("/css/") || 
                path.startsWith("/js/") || 
